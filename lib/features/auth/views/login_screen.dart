@@ -31,8 +31,12 @@ class _TestLoginState extends State<TestLogin> {
     super.dispose();
   }
 
-  void _showResultSnackBar(String message, bool isSuccess) {
-    ScaffoldMessenger.of(context).showSnackBar(
+  void _showResultSnackBar(
+    ScaffoldMessengerState messenger,
+    String message,
+    bool isSuccess,
+  ) {
+    messenger.showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: isSuccess ? Colors.green : Colors.red,
@@ -72,19 +76,28 @@ class _TestLoginState extends State<TestLogin> {
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final authBloc = context.read<AuthBloc>();
                     final result = await _authService.login(
                       _loginEmailController.text,
                       _loginPasswordController.text,
                     );
 
+                    if (!mounted) return;
+
                     if (result.success && result.user != null) {
                       _showResultSnackBar(
+                        messenger,
                         "Login Success! Welcome ${result.user!.name} (${result.user!.role})",
                         true,
                       );
-                      context.read<AuthBloc>().add(LoggedIn(result.user!));
+                      authBloc.add(LoggedIn(result.user!));
                     } else {
-                      _showResultSnackBar(result.errorMessage!, false);
+                      _showResultSnackBar(
+                        messenger,
+                        result.errorMessage!,
+                        false,
+                      );
                     }
                   },
                   child: const Text("Login"),
