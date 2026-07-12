@@ -78,6 +78,7 @@ class _TestLoginState extends State<TestLogin> {
                   onPressed: () async {
                     final messenger = ScaffoldMessenger.of(context);
                     final authBloc = context.read<AuthBloc>();
+
                     final result = await _authService.login(
                       _loginEmailController.text,
                       _loginPasswordController.text,
