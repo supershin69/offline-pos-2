@@ -21,17 +21,55 @@ class Users extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Users])
+class Items extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get name => text().withLength(min: 1, max: 255)();
+  IntColumn get price => integer()();
+  BoolColumn get isDiscounted => boolean().withDefault(const Constant(false))();
+  IntColumn get discountedPrice => integer().nullable()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class Variants extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get itemId =>
+      text().references(Items, #id, onDelete: KeyAction.cascade)();
+  TextColumn get sku => text().unique()();
+  DateTimeColumn get expireDate => dateTime().nullable()();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [Users, Items, Variants])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   Future<User?> getUserByEmail(String email) {
     return (select(
       users,
     )..where((tbl) => tbl.email.equals(email))).getSingleOrNull();
+  }
+
+  Stream<List<TypedResult>> getItemsWithCount() {
+    final query = select(
+      items,
+    ).join([leftOuterJoin(variants, variants.itemId.equalsExp(items.id))]);
+
+    query.groupBy([items.id]);
+
+    return query.watch();
   }
 }
 
