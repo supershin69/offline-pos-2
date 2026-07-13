@@ -67,8 +67,7 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
       // TestDataTableScreen()
-      home: 
-      BlocBuilder<AuthBloc, AuthState>(
+      home: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is Authenticated) {
             return MainWrapper(user: state.user);
@@ -127,7 +126,7 @@ class TestDataTableScreen extends StatelessWidget {
             name: "Kyaw Min",
             email: "mgshinthant59@gmail.com",
             password: "jokerneedGF1!",
-            role: "CASHIER",
+            role: "ADMIN",
           );
         },
         child: Icon(Icons.add),
