@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/auth/data/auth_bloc.dart';
+import 'package:offline_pos/features/auth/repositories/auth_service.dart';
 import 'package:offline_pos/features/auth/views/login_screen.dart';
+import 'package:offline_pos/features/products/data/product_bloc.dart';
+import 'package:offline_pos/features/products/repositories/product_repository.dart';
 import 'package:offline_pos/features/users/repositories/user_service.dart';
 import 'package:offline_pos/main_wrapper.dart';
+import 'package:path/path.dart';
 
 late AppDatabase db;
 final userService = UserService(db);
@@ -14,9 +18,24 @@ void main() {
 
   db = AppDatabase();
   runApp(
-    BlocProvider(
-      create: (context) => AuthBloc()..add(AppStarted()),
-      child: const MyApp(),
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<ProductRepository>(
+          create: (context) => ProductRepository(db),
+        ),
+        RepositoryProvider<AuthService>(create: (context) => AuthService(db)),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => AuthBloc()..add(AppStarted())),
+          BlocProvider(
+            create: (context) =>
+                ProductBloc(context.read<ProductRepository>())
+                  ..add(MonitorProductStarted()),
+          ),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -105,10 +124,10 @@ class TestDataTableScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await userService.registerUser(
-            name: "Shin Thant Aung",
-            email: "mgshinthant58@gmail.com",
+            name: "Kyaw Min",
+            email: "mgshinthant59@gmail.com",
             password: "jokerneedGF1!",
-            role: "ADMIN",
+            role: "CASHIER",
           );
         },
         child: Icon(Icons.add),
