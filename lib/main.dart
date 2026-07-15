@@ -49,6 +49,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        primaryColor: Colors.blue,
+        brightness: Brightness.light,
+        fontFamily: 'Roboto',
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(foregroundColor: Colors.white),
+        ),
         // This is the theme of your application.
         //
         // TRY THIS: Try running your application with "flutter run". You'll see
@@ -124,10 +130,10 @@ class TestDataTableScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await userService.registerUser(
-            name: "Kyaw Min",
-            email: "mgshinthant59@gmail.com",
-            password: "jokerneedGF1!",
-            role: "CASHIER",
+            name: "Khun Thet Paing",
+            email: "khunthetpaing06@gmail.com",
+            password: "rounded@10",
+            role: "ADMIN",
           );
         },
         child: Icon(Icons.add),
