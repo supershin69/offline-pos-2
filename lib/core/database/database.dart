@@ -25,6 +25,7 @@ class Items extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get name => text().withLength(min: 1, max: 255)();
   IntColumn get price => integer()();
+  TextColumn get photoUrl => text()();
   BoolColumn get isDiscounted => boolean().withDefault(const Constant(false))();
   IntColumn get discountedPrice => integer().nullable()();
 

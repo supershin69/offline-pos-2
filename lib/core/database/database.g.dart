@@ -490,6 +490,17 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _photoUrlMeta = const VerificationMeta(
+    'photoUrl',
+  );
+  @override
+  late final GeneratedColumn<String> photoUrl = GeneratedColumn<String>(
+    'photo_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _isDiscountedMeta = const VerificationMeta(
     'isDiscounted',
   );
@@ -545,6 +556,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     id,
     name,
     price,
+    photoUrl,
     isDiscounted,
     discountedPrice,
     createdAt,
@@ -580,6 +592,14 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       );
     } else if (isInserting) {
       context.missing(_priceMeta);
+    }
+    if (data.containsKey('photo_url')) {
+      context.handle(
+        _photoUrlMeta,
+        photoUrl.isAcceptableOrUnknown(data['photo_url']!, _photoUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_photoUrlMeta);
     }
     if (data.containsKey('is_discounted')) {
       context.handle(
@@ -632,6 +652,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.int,
         data['${effectivePrefix}price'],
       )!,
+      photoUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_url'],
+      )!,
       isDiscounted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_discounted'],
@@ -661,6 +685,7 @@ class Item extends DataClass implements Insertable<Item> {
   final String id;
   final String name;
   final int price;
+  final String photoUrl;
   final bool isDiscounted;
   final int? discountedPrice;
   final DateTime createdAt;
@@ -669,6 +694,7 @@ class Item extends DataClass implements Insertable<Item> {
     required this.id,
     required this.name,
     required this.price,
+    required this.photoUrl,
     required this.isDiscounted,
     this.discountedPrice,
     required this.createdAt,
@@ -680,6 +706,7 @@ class Item extends DataClass implements Insertable<Item> {
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['price'] = Variable<int>(price);
+    map['photo_url'] = Variable<String>(photoUrl);
     map['is_discounted'] = Variable<bool>(isDiscounted);
     if (!nullToAbsent || discountedPrice != null) {
       map['discounted_price'] = Variable<int>(discountedPrice);
@@ -694,6 +721,7 @@ class Item extends DataClass implements Insertable<Item> {
       id: Value(id),
       name: Value(name),
       price: Value(price),
+      photoUrl: Value(photoUrl),
       isDiscounted: Value(isDiscounted),
       discountedPrice: discountedPrice == null && nullToAbsent
           ? const Value.absent()
@@ -712,6 +740,7 @@ class Item extends DataClass implements Insertable<Item> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       price: serializer.fromJson<int>(json['price']),
+      photoUrl: serializer.fromJson<String>(json['photoUrl']),
       isDiscounted: serializer.fromJson<bool>(json['isDiscounted']),
       discountedPrice: serializer.fromJson<int?>(json['discountedPrice']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -725,6 +754,7 @@ class Item extends DataClass implements Insertable<Item> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'price': serializer.toJson<int>(price),
+      'photoUrl': serializer.toJson<String>(photoUrl),
       'isDiscounted': serializer.toJson<bool>(isDiscounted),
       'discountedPrice': serializer.toJson<int?>(discountedPrice),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -736,6 +766,7 @@ class Item extends DataClass implements Insertable<Item> {
     String? id,
     String? name,
     int? price,
+    String? photoUrl,
     bool? isDiscounted,
     Value<int?> discountedPrice = const Value.absent(),
     DateTime? createdAt,
@@ -744,6 +775,7 @@ class Item extends DataClass implements Insertable<Item> {
     id: id ?? this.id,
     name: name ?? this.name,
     price: price ?? this.price,
+    photoUrl: photoUrl ?? this.photoUrl,
     isDiscounted: isDiscounted ?? this.isDiscounted,
     discountedPrice: discountedPrice.present
         ? discountedPrice.value
@@ -756,6 +788,7 @@ class Item extends DataClass implements Insertable<Item> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       price: data.price.present ? data.price.value : this.price,
+      photoUrl: data.photoUrl.present ? data.photoUrl.value : this.photoUrl,
       isDiscounted: data.isDiscounted.present
           ? data.isDiscounted.value
           : this.isDiscounted,
@@ -773,6 +806,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('price: $price, ')
+          ..write('photoUrl: $photoUrl, ')
           ..write('isDiscounted: $isDiscounted, ')
           ..write('discountedPrice: $discountedPrice, ')
           ..write('createdAt: $createdAt, ')
@@ -786,6 +820,7 @@ class Item extends DataClass implements Insertable<Item> {
     id,
     name,
     price,
+    photoUrl,
     isDiscounted,
     discountedPrice,
     createdAt,
@@ -798,6 +833,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.id == this.id &&
           other.name == this.name &&
           other.price == this.price &&
+          other.photoUrl == this.photoUrl &&
           other.isDiscounted == this.isDiscounted &&
           other.discountedPrice == this.discountedPrice &&
           other.createdAt == this.createdAt &&
@@ -808,6 +844,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String> id;
   final Value<String> name;
   final Value<int> price;
+  final Value<String> photoUrl;
   final Value<bool> isDiscounted;
   final Value<int?> discountedPrice;
   final Value<DateTime> createdAt;
@@ -817,6 +854,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.price = const Value.absent(),
+    this.photoUrl = const Value.absent(),
     this.isDiscounted = const Value.absent(),
     this.discountedPrice = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -827,17 +865,20 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.id = const Value.absent(),
     required String name,
     required int price,
+    required String photoUrl,
     this.isDiscounted = const Value.absent(),
     this.discountedPrice = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : name = Value(name),
-       price = Value(price);
+       price = Value(price),
+       photoUrl = Value(photoUrl);
   static Insertable<Item> custom({
     Expression<String>? id,
     Expression<String>? name,
     Expression<int>? price,
+    Expression<String>? photoUrl,
     Expression<bool>? isDiscounted,
     Expression<int>? discountedPrice,
     Expression<DateTime>? createdAt,
@@ -848,6 +889,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (price != null) 'price': price,
+      if (photoUrl != null) 'photo_url': photoUrl,
       if (isDiscounted != null) 'is_discounted': isDiscounted,
       if (discountedPrice != null) 'discounted_price': discountedPrice,
       if (createdAt != null) 'created_at': createdAt,
@@ -860,6 +902,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String>? id,
     Value<String>? name,
     Value<int>? price,
+    Value<String>? photoUrl,
     Value<bool>? isDiscounted,
     Value<int?>? discountedPrice,
     Value<DateTime>? createdAt,
@@ -870,6 +913,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       id: id ?? this.id,
       name: name ?? this.name,
       price: price ?? this.price,
+      photoUrl: photoUrl ?? this.photoUrl,
       isDiscounted: isDiscounted ?? this.isDiscounted,
       discountedPrice: discountedPrice ?? this.discountedPrice,
       createdAt: createdAt ?? this.createdAt,
@@ -889,6 +933,9 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     }
     if (price.present) {
       map['price'] = Variable<int>(price.value);
+    }
+    if (photoUrl.present) {
+      map['photo_url'] = Variable<String>(photoUrl.value);
     }
     if (isDiscounted.present) {
       map['is_discounted'] = Variable<bool>(isDiscounted.value);
@@ -914,6 +961,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('price: $price, ')
+          ..write('photoUrl: $photoUrl, ')
           ..write('isDiscounted: $isDiscounted, ')
           ..write('discountedPrice: $discountedPrice, ')
           ..write('createdAt: $createdAt, ')
@@ -1589,6 +1637,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<String> id,
       required String name,
       required int price,
+      required String photoUrl,
       Value<bool> isDiscounted,
       Value<int?> discountedPrice,
       Value<DateTime> createdAt,
@@ -1600,6 +1649,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<int> price,
+      Value<String> photoUrl,
       Value<bool> isDiscounted,
       Value<int?> discountedPrice,
       Value<DateTime> createdAt,
@@ -1651,6 +1701,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
 
   ColumnFilters<int> get price => $composableBuilder(
     column: $table.price,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoUrl => $composableBuilder(
+    column: $table.photoUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1724,6 +1779,11 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get photoUrl => $composableBuilder(
+    column: $table.photoUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isDiscounted => $composableBuilder(
     column: $table.isDiscounted,
     builder: (column) => ColumnOrderings(column),
@@ -1762,6 +1822,9 @@ class $$ItemsTableAnnotationComposer
 
   GeneratedColumn<int> get price =>
       $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<String> get photoUrl =>
+      $composableBuilder(column: $table.photoUrl, builder: (column) => column);
 
   GeneratedColumn<bool> get isDiscounted => $composableBuilder(
     column: $table.isDiscounted,
@@ -1836,6 +1899,7 @@ class $$ItemsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> price = const Value.absent(),
+                Value<String> photoUrl = const Value.absent(),
                 Value<bool> isDiscounted = const Value.absent(),
                 Value<int?> discountedPrice = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -1845,6 +1909,7 @@ class $$ItemsTableTableManager
                 id: id,
                 name: name,
                 price: price,
+                photoUrl: photoUrl,
                 isDiscounted: isDiscounted,
                 discountedPrice: discountedPrice,
                 createdAt: createdAt,
@@ -1856,6 +1921,7 @@ class $$ItemsTableTableManager
                 Value<String> id = const Value.absent(),
                 required String name,
                 required int price,
+                required String photoUrl,
                 Value<bool> isDiscounted = const Value.absent(),
                 Value<int?> discountedPrice = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -1865,6 +1931,7 @@ class $$ItemsTableTableManager
                 id: id,
                 name: name,
                 price: price,
+                photoUrl: photoUrl,
                 isDiscounted: isDiscounted,
                 discountedPrice: discountedPrice,
                 createdAt: createdAt,
