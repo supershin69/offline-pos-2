@@ -8,7 +8,6 @@ import 'package:offline_pos/features/products/data/product_bloc.dart';
 import 'package:offline_pos/features/products/repositories/product_repository.dart';
 import 'package:offline_pos/features/users/repositories/user_service.dart';
 import 'package:offline_pos/main_wrapper.dart';
-import 'package:path/path.dart';
 
 late AppDatabase db;
 final userService = UserService(db);

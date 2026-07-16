@@ -1,3 +1,4 @@
+// core/database/database.dart
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -5,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+
 part 'database.g.dart';
 
 class Users extends Table {
@@ -39,6 +41,8 @@ class Items extends Table {
   TextColumn get photoUrl => text()();
   BoolColumn get isDiscounted => boolean().withDefault(const Constant(false))();
   IntColumn get discountedPrice => integer().nullable()();
+  DateTimeColumn get stockInDate => dateTime().nullable()();
+  DateTimeColumn get stockOutDate => dateTime().nullable()();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -47,27 +51,17 @@ class Items extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-class Variants extends Table {
-  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
-  TextColumn get itemId =>
-      text().references(Items, #id, onDelete: KeyAction.cascade)();
-  TextColumn get sku => text().unique()();
-  DateTimeColumn get expireDate => dateTime().nullable()();
-  DateTimeColumn get alertDate => dateTime().nullable()();
+// 🔗 Variants Table ကို လုံးဝ ဖြုတ်ပစ်လိုက်ပါပြီ
 
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-@DriftDatabase(tables: [Users, Categories, Items, Variants])
+@DriftDatabase(
+  tables: [Users, Categories, Items],
+) // ◄ Variants ကို ဖြုတ်လိုက်တယ်
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  // ⚠️ Table ဖြုတ်လိုက်တဲ့အတွက် ဗားရှင်းတိုးပေးရပါမယ် (သို့မဟုတ် App ကို ဖျက်ပြီး ပြန်တင်ပါ)
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   Future<User?> getUserByEmail(String email) {
     return (select(
@@ -75,14 +69,9 @@ class AppDatabase extends _$AppDatabase {
     )..where((tbl) => tbl.email.equals(email))).getSingleOrNull();
   }
 
-  Stream<List<TypedResult>> getItemsWithCount() {
-    final query = select(
-      items,
-    ).join([leftOuterJoin(variants, variants.itemId.equalsExp(items.id))]);
-
-    query.groupBy([items.id]);
-
-    return query.watch();
+  // 🔄 ရိုးရှင်းသွားတဲ့ Real-time Items Stream
+  Stream<List<Item>> watchItems() {
+    return select(items).watch();
   }
 }
 
