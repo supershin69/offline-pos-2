@@ -21,10 +21,21 @@ class Users extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class Categories extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get name => text().withLength(min: 1)();
+
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 class Items extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get categoryId =>
+      text().references(Categories, #id, onDelete: KeyAction.cascade)();
   TextColumn get name => text().withLength(min: 1, max: 255)();
-  IntColumn get price => integer()();
+  IntColumn get buyPrice => integer()();
+  IntColumn get sellPrice => integer()();
   TextColumn get photoUrl => text()();
   BoolColumn get isDiscounted => boolean().withDefault(const Constant(false))();
   IntColumn get discountedPrice => integer().nullable()();
@@ -42,6 +53,7 @@ class Variants extends Table {
       text().references(Items, #id, onDelete: KeyAction.cascade)();
   TextColumn get sku => text().unique()();
   DateTimeColumn get expireDate => dateTime().nullable()();
+  DateTimeColumn get alertDate => dateTime().nullable()();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -50,12 +62,12 @@ class Variants extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Users, Items, Variants])
+@DriftDatabase(tables: [Users, Categories, Items, Variants])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   Future<User?> getUserByEmail(String email) {
     return (select(
