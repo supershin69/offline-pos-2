@@ -386,12 +386,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF3EFFF),
-      body: Column(
-        children: [
-          // ---------- Header ----------
-          SafeArea(
-            child: Padding(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
