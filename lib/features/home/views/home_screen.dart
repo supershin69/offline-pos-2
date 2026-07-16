@@ -311,7 +311,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!_scrollController.hasClients) return;
     setState(() {
       _isAtStart = _scrollController.offset <= 0;
-      _isAtEnd = _scrollController.offset >=
+      _isAtEnd =
+          _scrollController.offset >=
           _scrollController.position.maxScrollExtent - 1;
     });
   }
@@ -376,9 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: isSelected ? Color(0xFF5945CB) : Colors.grey.shade400,
         width: 1.0,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     );
   }
@@ -386,11 +385,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
+      backgroundColor: Color(0xFFF3EFFF),
+      body: Column(
+        children: [
+          // ---------- Header ----------
+          SafeArea(
+            child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
@@ -547,9 +547,7 @@ class _ProductCardState extends State<ProductCard> {
       scale: _isImageActive ? 1.02 : 1.0,
       child: Card(
         elevation: _isImageActive ? 12 : 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -616,34 +614,43 @@ class _ProductCardState extends State<ProductCard> {
                             ),
                           );
                         },
-                        
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF5945CB),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(40, 26),
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ).copyWith(
-                          backgroundColor:
-                              WidgetStateProperty.resolveWith((states) {
-                            if (states.contains(WidgetState.hovered) ||
-                                states.contains(WidgetState.pressed)) {
-                              return Color(0xFF5945CB).withOpacity(0.8);
-                            }
-                            return Color(0xFF5945CB);
-                          }),
-                          elevation:
-                              WidgetStateProperty.resolveWith((states) {
-                            if (states.contains(WidgetState.hovered) ||
-                                states.contains(WidgetState.pressed)) {
-                              return 8.0;
-                            }
-                            return 2.0;
-                          }),
+
+                        style:
+                            ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF5945CB),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(40, 26),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ).copyWith(
+                              backgroundColor: WidgetStateProperty.resolveWith((
+                                states,
+                              ) {
+                                if (states.contains(WidgetState.hovered) ||
+                                    states.contains(WidgetState.pressed)) {
+                                  return Color(0xFF5945CB).withOpacity(0.8);
+                                }
+                                return Color(0xFF5945CB);
+                              }),
+                              elevation: WidgetStateProperty.resolveWith((
+                                states,
+                              ) {
+                                if (states.contains(WidgetState.hovered) ||
+                                    states.contains(WidgetState.pressed)) {
+                                  return 8.0;
+                                }
+                                return 2.0;
+                              }),
+                            ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 20,
+                          color: Colors.white,
                         ),
-                        child: const Icon(Icons.add, size: 20, color: Colors.white, ),
                       ),
                     ],
                   ),
