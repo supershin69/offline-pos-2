@@ -13,7 +13,16 @@ class AddProductRequested extends ProductEvent {
   AddProductRequested({required this.item});
 }
 
-// ❌ AddVariantRequested Event ကို ဖြုတ်လိုက်ပါပြီ
+class UpdateProductRequested extends ProductEvent {
+  final String id;
+  final ItemsCompanion item;
+  UpdateProductRequested({required this.id, required this.item});
+}
+
+class DeleteProductRequested extends ProductEvent {
+  final String id;
+  DeleteProductRequested({required this.id});
+}
 
 // --- States ---
 abstract class ProductState {}
@@ -21,8 +30,13 @@ abstract class ProductState {}
 class ProductInitial extends ProductState {}
 
 class ProductLoaded extends ProductState {
-  final List<Item> products; // ◄ Item စာရင်းသက်သက်ပဲ သယ်ဆောင်တော့တယ်
-  ProductLoaded({required this.products});
+  final List<Item> products; 
+  final String? error;
+  ProductLoaded({required this.products, this.error});
+
+  ProductLoaded copyWithError(String? error) {
+    return ProductLoaded(products: products, error: error);
+  }
 }
 
 // --- BLoC Logic ---
@@ -34,13 +48,45 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       await emit.forEach<List<Item>>(
         _repository.watchProducts(),
         onData: (itemList) => ProductLoaded(products: itemList),
+        onError: (error, stackTrace) {
+          final currentProducts = state is ProductLoaded ? (state as ProductLoaded).products : <Item>[];
+          return ProductLoaded(products: currentProducts, error: "Error loading products: $error");
+        }
       );
     });
 
     on<AddProductRequested>((event, emit) async {
-      await _repository.addProduct(event.item);
+      try {
+        await _repository.addProduct(event.item);
+      } catch (e) {
+        _emitError(emit, "Error adding product: $e");
+      }
+      
     });
 
-    // ❌ on<AddVariantRequested> ကို ဖြုတ်ပစ်လိုက်ပါပြီ
+    on<UpdateProductRequested>((event, emit) async {
+      try {
+        await _repository.updateProduct(event.id, event.item);
+      } catch (e) {
+        _emitError(emit, "Error updating product: $e");
+      }
+    });
+
+    on<DeleteProductRequested>((event, emit) async {
+      try {
+        await _repository.deleteProduct(event.id);
+      } catch (e) {
+        _emitError(emit, "Error deleting product: $e");
+      }
+    });
+
+  }
+
+  void _emitError(Emitter<ProductState> emit, String errorMessage) {
+    if (state is ProductLoaded) {
+      emit((state as ProductLoaded).copyWithError(errorMessage));
+    } else {
+      emit(ProductLoaded(products: const [], error: errorMessage));
+    }
   }
 }
