@@ -13,5 +13,15 @@ class ProductRepository {
     await db.into(db.items).insert(item);
   }
 
+  Future<int> updateProduct(String id, ItemsCompanion item) async {
+    return await (db.update(
+      db.items,
+    )..where((tbl) => tbl.id.equals(id))).write(item);
+  }
+
+  Future<int> deleteProduct(String id) async {
+    return await (db.delete(db.items)..where((tbl) => tbl.id.equals(id))).go();
+  }
+
   // ❌ addVariant ကို ဖြုတ်ပစ်လိုက်ပါပြီ
 }
