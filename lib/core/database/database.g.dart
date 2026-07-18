@@ -544,7 +544,7 @@ class $CategoriesTable extends Categories
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Category map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -798,86 +798,16 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _buyPriceMeta = const VerificationMeta(
-    'buyPrice',
+  static const VerificationMeta _photoPathMeta = const VerificationMeta(
+    'photoPath',
   );
   @override
-  late final GeneratedColumn<int> buyPrice = GeneratedColumn<int>(
-    'buy_price',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sellPriceMeta = const VerificationMeta(
-    'sellPrice',
-  );
-  @override
-  late final GeneratedColumn<int> sellPrice = GeneratedColumn<int>(
-    'sell_price',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _photoUrlMeta = const VerificationMeta(
-    'photoUrl',
-  );
-  @override
-  late final GeneratedColumn<String> photoUrl = GeneratedColumn<String>(
-    'photo_url',
+  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
+    'photo_path',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-  );
-  static const VerificationMeta _isDiscountedMeta = const VerificationMeta(
-    'isDiscounted',
-  );
-  @override
-  late final GeneratedColumn<bool> isDiscounted = GeneratedColumn<bool>(
-    'is_discounted',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_discounted" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _discountedPriceMeta = const VerificationMeta(
-    'discountedPrice',
-  );
-  @override
-  late final GeneratedColumn<int> discountedPrice = GeneratedColumn<int>(
-    'discounted_price',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _stockInDateMeta = const VerificationMeta(
-    'stockInDate',
-  );
-  @override
-  late final GeneratedColumn<DateTime> stockInDate = GeneratedColumn<DateTime>(
-    'stock_in_date',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _stockOutDateMeta = const VerificationMeta(
-    'stockOutDate',
-  );
-  @override
-  late final GeneratedColumn<DateTime> stockOutDate = GeneratedColumn<DateTime>(
-    'stock_out_date',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -908,13 +838,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     id,
     categoryId,
     name,
-    buyPrice,
-    sellPrice,
-    photoUrl,
-    isDiscounted,
-    discountedPrice,
-    stockInDate,
-    stockOutDate,
+    photoPath,
     createdAt,
     updatedAt,
   ];
@@ -949,65 +873,13 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('buy_price')) {
+    if (data.containsKey('photo_path')) {
       context.handle(
-        _buyPriceMeta,
-        buyPrice.isAcceptableOrUnknown(data['buy_price']!, _buyPriceMeta),
+        _photoPathMeta,
+        photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta),
       );
     } else if (isInserting) {
-      context.missing(_buyPriceMeta);
-    }
-    if (data.containsKey('sell_price')) {
-      context.handle(
-        _sellPriceMeta,
-        sellPrice.isAcceptableOrUnknown(data['sell_price']!, _sellPriceMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sellPriceMeta);
-    }
-    if (data.containsKey('photo_url')) {
-      context.handle(
-        _photoUrlMeta,
-        photoUrl.isAcceptableOrUnknown(data['photo_url']!, _photoUrlMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_photoUrlMeta);
-    }
-    if (data.containsKey('is_discounted')) {
-      context.handle(
-        _isDiscountedMeta,
-        isDiscounted.isAcceptableOrUnknown(
-          data['is_discounted']!,
-          _isDiscountedMeta,
-        ),
-      );
-    }
-    if (data.containsKey('discounted_price')) {
-      context.handle(
-        _discountedPriceMeta,
-        discountedPrice.isAcceptableOrUnknown(
-          data['discounted_price']!,
-          _discountedPriceMeta,
-        ),
-      );
-    }
-    if (data.containsKey('stock_in_date')) {
-      context.handle(
-        _stockInDateMeta,
-        stockInDate.isAcceptableOrUnknown(
-          data['stock_in_date']!,
-          _stockInDateMeta,
-        ),
-      );
-    }
-    if (data.containsKey('stock_out_date')) {
-      context.handle(
-        _stockOutDateMeta,
-        stockOutDate.isAcceptableOrUnknown(
-          data['stock_out_date']!,
-          _stockOutDateMeta,
-        ),
-      );
+      context.missing(_photoPathMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -1042,34 +914,10 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
-      buyPrice: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}buy_price'],
-      )!,
-      sellPrice: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}sell_price'],
-      )!,
-      photoUrl: attachedDatabase.typeMapping.read(
+      photoPath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}photo_url'],
+        data['${effectivePrefix}photo_path'],
       )!,
-      isDiscounted: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_discounted'],
-      )!,
-      discountedPrice: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}discounted_price'],
-      ),
-      stockInDate: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}stock_in_date'],
-      ),
-      stockOutDate: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}stock_out_date'],
-      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1091,26 +939,14 @@ class Item extends DataClass implements Insertable<Item> {
   final String id;
   final String categoryId;
   final String name;
-  final int buyPrice;
-  final int sellPrice;
-  final String photoUrl;
-  final bool isDiscounted;
-  final int? discountedPrice;
-  final DateTime? stockInDate;
-  final DateTime? stockOutDate;
+  final String photoPath;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Item({
     required this.id,
     required this.categoryId,
     required this.name,
-    required this.buyPrice,
-    required this.sellPrice,
-    required this.photoUrl,
-    required this.isDiscounted,
-    this.discountedPrice,
-    this.stockInDate,
-    this.stockOutDate,
+    required this.photoPath,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1120,19 +956,7 @@ class Item extends DataClass implements Insertable<Item> {
     map['id'] = Variable<String>(id);
     map['category_id'] = Variable<String>(categoryId);
     map['name'] = Variable<String>(name);
-    map['buy_price'] = Variable<int>(buyPrice);
-    map['sell_price'] = Variable<int>(sellPrice);
-    map['photo_url'] = Variable<String>(photoUrl);
-    map['is_discounted'] = Variable<bool>(isDiscounted);
-    if (!nullToAbsent || discountedPrice != null) {
-      map['discounted_price'] = Variable<int>(discountedPrice);
-    }
-    if (!nullToAbsent || stockInDate != null) {
-      map['stock_in_date'] = Variable<DateTime>(stockInDate);
-    }
-    if (!nullToAbsent || stockOutDate != null) {
-      map['stock_out_date'] = Variable<DateTime>(stockOutDate);
-    }
+    map['photo_path'] = Variable<String>(photoPath);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1143,19 +967,7 @@ class Item extends DataClass implements Insertable<Item> {
       id: Value(id),
       categoryId: Value(categoryId),
       name: Value(name),
-      buyPrice: Value(buyPrice),
-      sellPrice: Value(sellPrice),
-      photoUrl: Value(photoUrl),
-      isDiscounted: Value(isDiscounted),
-      discountedPrice: discountedPrice == null && nullToAbsent
-          ? const Value.absent()
-          : Value(discountedPrice),
-      stockInDate: stockInDate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(stockInDate),
-      stockOutDate: stockOutDate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(stockOutDate),
+      photoPath: Value(photoPath),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1170,13 +982,7 @@ class Item extends DataClass implements Insertable<Item> {
       id: serializer.fromJson<String>(json['id']),
       categoryId: serializer.fromJson<String>(json['categoryId']),
       name: serializer.fromJson<String>(json['name']),
-      buyPrice: serializer.fromJson<int>(json['buyPrice']),
-      sellPrice: serializer.fromJson<int>(json['sellPrice']),
-      photoUrl: serializer.fromJson<String>(json['photoUrl']),
-      isDiscounted: serializer.fromJson<bool>(json['isDiscounted']),
-      discountedPrice: serializer.fromJson<int?>(json['discountedPrice']),
-      stockInDate: serializer.fromJson<DateTime?>(json['stockInDate']),
-      stockOutDate: serializer.fromJson<DateTime?>(json['stockOutDate']),
+      photoPath: serializer.fromJson<String>(json['photoPath']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1188,13 +994,7 @@ class Item extends DataClass implements Insertable<Item> {
       'id': serializer.toJson<String>(id),
       'categoryId': serializer.toJson<String>(categoryId),
       'name': serializer.toJson<String>(name),
-      'buyPrice': serializer.toJson<int>(buyPrice),
-      'sellPrice': serializer.toJson<int>(sellPrice),
-      'photoUrl': serializer.toJson<String>(photoUrl),
-      'isDiscounted': serializer.toJson<bool>(isDiscounted),
-      'discountedPrice': serializer.toJson<int?>(discountedPrice),
-      'stockInDate': serializer.toJson<DateTime?>(stockInDate),
-      'stockOutDate': serializer.toJson<DateTime?>(stockOutDate),
+      'photoPath': serializer.toJson<String>(photoPath),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1204,28 +1004,14 @@ class Item extends DataClass implements Insertable<Item> {
     String? id,
     String? categoryId,
     String? name,
-    int? buyPrice,
-    int? sellPrice,
-    String? photoUrl,
-    bool? isDiscounted,
-    Value<int?> discountedPrice = const Value.absent(),
-    Value<DateTime?> stockInDate = const Value.absent(),
-    Value<DateTime?> stockOutDate = const Value.absent(),
+    String? photoPath,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Item(
     id: id ?? this.id,
     categoryId: categoryId ?? this.categoryId,
     name: name ?? this.name,
-    buyPrice: buyPrice ?? this.buyPrice,
-    sellPrice: sellPrice ?? this.sellPrice,
-    photoUrl: photoUrl ?? this.photoUrl,
-    isDiscounted: isDiscounted ?? this.isDiscounted,
-    discountedPrice: discountedPrice.present
-        ? discountedPrice.value
-        : this.discountedPrice,
-    stockInDate: stockInDate.present ? stockInDate.value : this.stockInDate,
-    stockOutDate: stockOutDate.present ? stockOutDate.value : this.stockOutDate,
+    photoPath: photoPath ?? this.photoPath,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1236,21 +1022,7 @@ class Item extends DataClass implements Insertable<Item> {
           ? data.categoryId.value
           : this.categoryId,
       name: data.name.present ? data.name.value : this.name,
-      buyPrice: data.buyPrice.present ? data.buyPrice.value : this.buyPrice,
-      sellPrice: data.sellPrice.present ? data.sellPrice.value : this.sellPrice,
-      photoUrl: data.photoUrl.present ? data.photoUrl.value : this.photoUrl,
-      isDiscounted: data.isDiscounted.present
-          ? data.isDiscounted.value
-          : this.isDiscounted,
-      discountedPrice: data.discountedPrice.present
-          ? data.discountedPrice.value
-          : this.discountedPrice,
-      stockInDate: data.stockInDate.present
-          ? data.stockInDate.value
-          : this.stockInDate,
-      stockOutDate: data.stockOutDate.present
-          ? data.stockOutDate.value
-          : this.stockOutDate,
+      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1262,13 +1034,7 @@ class Item extends DataClass implements Insertable<Item> {
           ..write('id: $id, ')
           ..write('categoryId: $categoryId, ')
           ..write('name: $name, ')
-          ..write('buyPrice: $buyPrice, ')
-          ..write('sellPrice: $sellPrice, ')
-          ..write('photoUrl: $photoUrl, ')
-          ..write('isDiscounted: $isDiscounted, ')
-          ..write('discountedPrice: $discountedPrice, ')
-          ..write('stockInDate: $stockInDate, ')
-          ..write('stockOutDate: $stockOutDate, ')
+          ..write('photoPath: $photoPath, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1276,20 +1042,8 @@ class Item extends DataClass implements Insertable<Item> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    categoryId,
-    name,
-    buyPrice,
-    sellPrice,
-    photoUrl,
-    isDiscounted,
-    discountedPrice,
-    stockInDate,
-    stockOutDate,
-    createdAt,
-    updatedAt,
-  );
+  int get hashCode =>
+      Object.hash(id, categoryId, name, photoPath, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1297,13 +1051,7 @@ class Item extends DataClass implements Insertable<Item> {
           other.id == this.id &&
           other.categoryId == this.categoryId &&
           other.name == this.name &&
-          other.buyPrice == this.buyPrice &&
-          other.sellPrice == this.sellPrice &&
-          other.photoUrl == this.photoUrl &&
-          other.isDiscounted == this.isDiscounted &&
-          other.discountedPrice == this.discountedPrice &&
-          other.stockInDate == this.stockInDate &&
-          other.stockOutDate == this.stockOutDate &&
+          other.photoPath == this.photoPath &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1312,13 +1060,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<String> id;
   final Value<String> categoryId;
   final Value<String> name;
-  final Value<int> buyPrice;
-  final Value<int> sellPrice;
-  final Value<String> photoUrl;
-  final Value<bool> isDiscounted;
-  final Value<int?> discountedPrice;
-  final Value<DateTime?> stockInDate;
-  final Value<DateTime?> stockOutDate;
+  final Value<String> photoPath;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1326,13 +1068,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.id = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.name = const Value.absent(),
-    this.buyPrice = const Value.absent(),
-    this.sellPrice = const Value.absent(),
-    this.photoUrl = const Value.absent(),
-    this.isDiscounted = const Value.absent(),
-    this.discountedPrice = const Value.absent(),
-    this.stockInDate = const Value.absent(),
-    this.stockOutDate = const Value.absent(),
+    this.photoPath = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1341,32 +1077,18 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.id = const Value.absent(),
     required String categoryId,
     required String name,
-    required int buyPrice,
-    required int sellPrice,
-    required String photoUrl,
-    this.isDiscounted = const Value.absent(),
-    this.discountedPrice = const Value.absent(),
-    this.stockInDate = const Value.absent(),
-    this.stockOutDate = const Value.absent(),
+    required String photoPath,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : categoryId = Value(categoryId),
        name = Value(name),
-       buyPrice = Value(buyPrice),
-       sellPrice = Value(sellPrice),
-       photoUrl = Value(photoUrl);
+       photoPath = Value(photoPath);
   static Insertable<Item> custom({
     Expression<String>? id,
     Expression<String>? categoryId,
     Expression<String>? name,
-    Expression<int>? buyPrice,
-    Expression<int>? sellPrice,
-    Expression<String>? photoUrl,
-    Expression<bool>? isDiscounted,
-    Expression<int>? discountedPrice,
-    Expression<DateTime>? stockInDate,
-    Expression<DateTime>? stockOutDate,
+    Expression<String>? photoPath,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1375,13 +1097,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       if (id != null) 'id': id,
       if (categoryId != null) 'category_id': categoryId,
       if (name != null) 'name': name,
-      if (buyPrice != null) 'buy_price': buyPrice,
-      if (sellPrice != null) 'sell_price': sellPrice,
-      if (photoUrl != null) 'photo_url': photoUrl,
-      if (isDiscounted != null) 'is_discounted': isDiscounted,
-      if (discountedPrice != null) 'discounted_price': discountedPrice,
-      if (stockInDate != null) 'stock_in_date': stockInDate,
-      if (stockOutDate != null) 'stock_out_date': stockOutDate,
+      if (photoPath != null) 'photo_path': photoPath,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1392,13 +1108,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     Value<String>? id,
     Value<String>? categoryId,
     Value<String>? name,
-    Value<int>? buyPrice,
-    Value<int>? sellPrice,
-    Value<String>? photoUrl,
-    Value<bool>? isDiscounted,
-    Value<int?>? discountedPrice,
-    Value<DateTime?>? stockInDate,
-    Value<DateTime?>? stockOutDate,
+    Value<String>? photoPath,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1407,13 +1117,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       id: id ?? this.id,
       categoryId: categoryId ?? this.categoryId,
       name: name ?? this.name,
-      buyPrice: buyPrice ?? this.buyPrice,
-      sellPrice: sellPrice ?? this.sellPrice,
-      photoUrl: photoUrl ?? this.photoUrl,
-      isDiscounted: isDiscounted ?? this.isDiscounted,
-      discountedPrice: discountedPrice ?? this.discountedPrice,
-      stockInDate: stockInDate ?? this.stockInDate,
-      stockOutDate: stockOutDate ?? this.stockOutDate,
+      photoPath: photoPath ?? this.photoPath,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1432,26 +1136,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (buyPrice.present) {
-      map['buy_price'] = Variable<int>(buyPrice.value);
-    }
-    if (sellPrice.present) {
-      map['sell_price'] = Variable<int>(sellPrice.value);
-    }
-    if (photoUrl.present) {
-      map['photo_url'] = Variable<String>(photoUrl.value);
-    }
-    if (isDiscounted.present) {
-      map['is_discounted'] = Variable<bool>(isDiscounted.value);
-    }
-    if (discountedPrice.present) {
-      map['discounted_price'] = Variable<int>(discountedPrice.value);
-    }
-    if (stockInDate.present) {
-      map['stock_in_date'] = Variable<DateTime>(stockInDate.value);
-    }
-    if (stockOutDate.present) {
-      map['stock_out_date'] = Variable<DateTime>(stockOutDate.value);
+    if (photoPath.present) {
+      map['photo_path'] = Variable<String>(photoPath.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1471,15 +1157,573 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('id: $id, ')
           ..write('categoryId: $categoryId, ')
           ..write('name: $name, ')
+          ..write('photoPath: $photoPath, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StockBatchesTable extends StockBatches
+    with TableInfo<$StockBatchesTable, StockBatch> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StockBatchesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES items (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _buyPriceMeta = const VerificationMeta(
+    'buyPrice',
+  );
+  @override
+  late final GeneratedColumn<int> buyPrice = GeneratedColumn<int>(
+    'buy_price',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sellPriceMeta = const VerificationMeta(
+    'sellPrice',
+  );
+  @override
+  late final GeneratedColumn<int> sellPrice = GeneratedColumn<int>(
+    'sell_price',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stockInDateMeta = const VerificationMeta(
+    'stockInDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> stockInDate = GeneratedColumn<DateTime>(
+    'stock_in_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _stockOutDateMeta = const VerificationMeta(
+    'stockOutDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> stockOutDate = GeneratedColumn<DateTime>(
+    'stock_out_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemId,
+    version,
+    quantity,
+    buyPrice,
+    sellPrice,
+    stockInDate,
+    stockOutDate,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stock_batches';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StockBatch> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('buy_price')) {
+      context.handle(
+        _buyPriceMeta,
+        buyPrice.isAcceptableOrUnknown(data['buy_price']!, _buyPriceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_buyPriceMeta);
+    }
+    if (data.containsKey('sell_price')) {
+      context.handle(
+        _sellPriceMeta,
+        sellPrice.isAcceptableOrUnknown(data['sell_price']!, _sellPriceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sellPriceMeta);
+    }
+    if (data.containsKey('stock_in_date')) {
+      context.handle(
+        _stockInDateMeta,
+        stockInDate.isAcceptableOrUnknown(
+          data['stock_in_date']!,
+          _stockInDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('stock_out_date')) {
+      context.handle(
+        _stockOutDateMeta,
+        stockOutDate.isAcceptableOrUnknown(
+          data['stock_out_date']!,
+          _stockOutDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StockBatch map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StockBatch(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quantity'],
+      )!,
+      buyPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}buy_price'],
+      )!,
+      sellPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sell_price'],
+      )!,
+      stockInDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}stock_in_date'],
+      )!,
+      stockOutDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}stock_out_date'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StockBatchesTable createAlias(String alias) {
+    return $StockBatchesTable(attachedDatabase, alias);
+  }
+}
+
+class StockBatch extends DataClass implements Insertable<StockBatch> {
+  final String id;
+  final String itemId;
+  final int version;
+  final int quantity;
+  final int buyPrice;
+  final int sellPrice;
+  final DateTime stockInDate;
+  final DateTime? stockOutDate;
+  final DateTime createdAt;
+  const StockBatch({
+    required this.id,
+    required this.itemId,
+    required this.version,
+    required this.quantity,
+    required this.buyPrice,
+    required this.sellPrice,
+    required this.stockInDate,
+    this.stockOutDate,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['item_id'] = Variable<String>(itemId);
+    map['version'] = Variable<int>(version);
+    map['quantity'] = Variable<int>(quantity);
+    map['buy_price'] = Variable<int>(buyPrice);
+    map['sell_price'] = Variable<int>(sellPrice);
+    map['stock_in_date'] = Variable<DateTime>(stockInDate);
+    if (!nullToAbsent || stockOutDate != null) {
+      map['stock_out_date'] = Variable<DateTime>(stockOutDate);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  StockBatchesCompanion toCompanion(bool nullToAbsent) {
+    return StockBatchesCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      version: Value(version),
+      quantity: Value(quantity),
+      buyPrice: Value(buyPrice),
+      sellPrice: Value(sellPrice),
+      stockInDate: Value(stockInDate),
+      stockOutDate: stockOutDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stockOutDate),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory StockBatch.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StockBatch(
+      id: serializer.fromJson<String>(json['id']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      version: serializer.fromJson<int>(json['version']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      buyPrice: serializer.fromJson<int>(json['buyPrice']),
+      sellPrice: serializer.fromJson<int>(json['sellPrice']),
+      stockInDate: serializer.fromJson<DateTime>(json['stockInDate']),
+      stockOutDate: serializer.fromJson<DateTime?>(json['stockOutDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'itemId': serializer.toJson<String>(itemId),
+      'version': serializer.toJson<int>(version),
+      'quantity': serializer.toJson<int>(quantity),
+      'buyPrice': serializer.toJson<int>(buyPrice),
+      'sellPrice': serializer.toJson<int>(sellPrice),
+      'stockInDate': serializer.toJson<DateTime>(stockInDate),
+      'stockOutDate': serializer.toJson<DateTime?>(stockOutDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  StockBatch copyWith({
+    String? id,
+    String? itemId,
+    int? version,
+    int? quantity,
+    int? buyPrice,
+    int? sellPrice,
+    DateTime? stockInDate,
+    Value<DateTime?> stockOutDate = const Value.absent(),
+    DateTime? createdAt,
+  }) => StockBatch(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    version: version ?? this.version,
+    quantity: quantity ?? this.quantity,
+    buyPrice: buyPrice ?? this.buyPrice,
+    sellPrice: sellPrice ?? this.sellPrice,
+    stockInDate: stockInDate ?? this.stockInDate,
+    stockOutDate: stockOutDate.present ? stockOutDate.value : this.stockOutDate,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  StockBatch copyWithCompanion(StockBatchesCompanion data) {
+    return StockBatch(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      version: data.version.present ? data.version.value : this.version,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      buyPrice: data.buyPrice.present ? data.buyPrice.value : this.buyPrice,
+      sellPrice: data.sellPrice.present ? data.sellPrice.value : this.sellPrice,
+      stockInDate: data.stockInDate.present
+          ? data.stockInDate.value
+          : this.stockInDate,
+      stockOutDate: data.stockOutDate.present
+          ? data.stockOutDate.value
+          : this.stockOutDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockBatch(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('version: $version, ')
+          ..write('quantity: $quantity, ')
           ..write('buyPrice: $buyPrice, ')
           ..write('sellPrice: $sellPrice, ')
-          ..write('photoUrl: $photoUrl, ')
-          ..write('isDiscounted: $isDiscounted, ')
-          ..write('discountedPrice: $discountedPrice, ')
+          ..write('stockInDate: $stockInDate, ')
+          ..write('stockOutDate: $stockOutDate, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    itemId,
+    version,
+    quantity,
+    buyPrice,
+    sellPrice,
+    stockInDate,
+    stockOutDate,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StockBatch &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.version == this.version &&
+          other.quantity == this.quantity &&
+          other.buyPrice == this.buyPrice &&
+          other.sellPrice == this.sellPrice &&
+          other.stockInDate == this.stockInDate &&
+          other.stockOutDate == this.stockOutDate &&
+          other.createdAt == this.createdAt);
+}
+
+class StockBatchesCompanion extends UpdateCompanion<StockBatch> {
+  final Value<String> id;
+  final Value<String> itemId;
+  final Value<int> version;
+  final Value<int> quantity;
+  final Value<int> buyPrice;
+  final Value<int> sellPrice;
+  final Value<DateTime> stockInDate;
+  final Value<DateTime?> stockOutDate;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const StockBatchesCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.version = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.buyPrice = const Value.absent(),
+    this.sellPrice = const Value.absent(),
+    this.stockInDate = const Value.absent(),
+    this.stockOutDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StockBatchesCompanion.insert({
+    this.id = const Value.absent(),
+    required String itemId,
+    this.version = const Value.absent(),
+    required int quantity,
+    required int buyPrice,
+    required int sellPrice,
+    this.stockInDate = const Value.absent(),
+    this.stockOutDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : itemId = Value(itemId),
+       quantity = Value(quantity),
+       buyPrice = Value(buyPrice),
+       sellPrice = Value(sellPrice);
+  static Insertable<StockBatch> custom({
+    Expression<String>? id,
+    Expression<String>? itemId,
+    Expression<int>? version,
+    Expression<int>? quantity,
+    Expression<int>? buyPrice,
+    Expression<int>? sellPrice,
+    Expression<DateTime>? stockInDate,
+    Expression<DateTime>? stockOutDate,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (version != null) 'version': version,
+      if (quantity != null) 'quantity': quantity,
+      if (buyPrice != null) 'buy_price': buyPrice,
+      if (sellPrice != null) 'sell_price': sellPrice,
+      if (stockInDate != null) 'stock_in_date': stockInDate,
+      if (stockOutDate != null) 'stock_out_date': stockOutDate,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StockBatchesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? itemId,
+    Value<int>? version,
+    Value<int>? quantity,
+    Value<int>? buyPrice,
+    Value<int>? sellPrice,
+    Value<DateTime>? stockInDate,
+    Value<DateTime?>? stockOutDate,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return StockBatchesCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      version: version ?? this.version,
+      quantity: quantity ?? this.quantity,
+      buyPrice: buyPrice ?? this.buyPrice,
+      sellPrice: sellPrice ?? this.sellPrice,
+      stockInDate: stockInDate ?? this.stockInDate,
+      stockOutDate: stockOutDate ?? this.stockOutDate,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (buyPrice.present) {
+      map['buy_price'] = Variable<int>(buyPrice.value);
+    }
+    if (sellPrice.present) {
+      map['sell_price'] = Variable<int>(sellPrice.value);
+    }
+    if (stockInDate.present) {
+      map['stock_in_date'] = Variable<DateTime>(stockInDate.value);
+    }
+    if (stockOutDate.present) {
+      map['stock_out_date'] = Variable<DateTime>(stockOutDate.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockBatchesCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('version: $version, ')
+          ..write('quantity: $quantity, ')
+          ..write('buyPrice: $buyPrice, ')
+          ..write('sellPrice: $sellPrice, ')
           ..write('stockInDate: $stockInDate, ')
           ..write('stockOutDate: $stockOutDate, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1492,6 +1736,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UsersTable users = $UsersTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $ItemsTable items = $ItemsTable(this);
+  late final $StockBatchesTable stockBatches = $StockBatchesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1500,6 +1745,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     users,
     categories,
     items,
+    stockBatches,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1509,6 +1755,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('items', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'items',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('stock_batches', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2024,13 +2277,7 @@ typedef $$ItemsTableCreateCompanionBuilder =
       Value<String> id,
       required String categoryId,
       required String name,
-      required int buyPrice,
-      required int sellPrice,
-      required String photoUrl,
-      Value<bool> isDiscounted,
-      Value<int?> discountedPrice,
-      Value<DateTime?> stockInDate,
-      Value<DateTime?> stockOutDate,
+      required String photoPath,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -2040,13 +2287,7 @@ typedef $$ItemsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> categoryId,
       Value<String> name,
-      Value<int> buyPrice,
-      Value<int> sellPrice,
-      Value<String> photoUrl,
-      Value<bool> isDiscounted,
-      Value<int?> discountedPrice,
-      Value<DateTime?> stockInDate,
-      Value<DateTime?> stockOutDate,
+      Value<String> photoPath,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -2072,6 +2313,24 @@ final class $$ItemsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$StockBatchesTable, List<StockBatch>>
+  _stockBatchesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.stockBatches,
+    aliasName: 'items__id__stock_batches__item_id',
+  );
+
+  $$StockBatchesTableProcessedTableManager get stockBatchesRefs {
+    final manager = $$StockBatchesTableTableManager(
+      $_db,
+      $_db.stockBatches,
+    ).filter((f) => f.itemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stockBatchesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
@@ -2092,38 +2351,8 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get buyPrice => $composableBuilder(
-    column: $table.buyPrice,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get sellPrice => $composableBuilder(
-    column: $table.sellPrice,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get photoUrl => $composableBuilder(
-    column: $table.photoUrl,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isDiscounted => $composableBuilder(
-    column: $table.isDiscounted,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get discountedPrice => $composableBuilder(
-    column: $table.discountedPrice,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get stockInDate => $composableBuilder(
-    column: $table.stockInDate,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get stockOutDate => $composableBuilder(
-    column: $table.stockOutDate,
+  ColumnFilters<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2159,6 +2388,31 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
     );
     return composer;
   }
+
+  Expression<bool> stockBatchesRefs(
+    Expression<bool> Function($$StockBatchesTableFilterComposer f) f,
+  ) {
+    final $$StockBatchesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockBatches,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockBatchesTableFilterComposer(
+            $db: $db,
+            $table: $db.stockBatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ItemsTableOrderingComposer
@@ -2180,38 +2434,8 @@ class $$ItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get buyPrice => $composableBuilder(
-    column: $table.buyPrice,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get sellPrice => $composableBuilder(
-    column: $table.sellPrice,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get photoUrl => $composableBuilder(
-    column: $table.photoUrl,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isDiscounted => $composableBuilder(
-    column: $table.isDiscounted,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get discountedPrice => $composableBuilder(
-    column: $table.discountedPrice,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get stockInDate => $composableBuilder(
-    column: $table.stockInDate,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get stockOutDate => $composableBuilder(
-    column: $table.stockOutDate,
+  ColumnOrderings<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2264,34 +2488,8 @@ class $$ItemsTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<int> get buyPrice =>
-      $composableBuilder(column: $table.buyPrice, builder: (column) => column);
-
-  GeneratedColumn<int> get sellPrice =>
-      $composableBuilder(column: $table.sellPrice, builder: (column) => column);
-
-  GeneratedColumn<String> get photoUrl =>
-      $composableBuilder(column: $table.photoUrl, builder: (column) => column);
-
-  GeneratedColumn<bool> get isDiscounted => $composableBuilder(
-    column: $table.isDiscounted,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get discountedPrice => $composableBuilder(
-    column: $table.discountedPrice,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get stockInDate => $composableBuilder(
-    column: $table.stockInDate,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get stockOutDate => $composableBuilder(
-    column: $table.stockOutDate,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get photoPath =>
+      $composableBuilder(column: $table.photoPath, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2321,6 +2519,31 @@ class $$ItemsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> stockBatchesRefs<T extends Object>(
+    Expression<T> Function($$StockBatchesTableAnnotationComposer a) f,
+  ) {
+    final $$StockBatchesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.stockBatches,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StockBatchesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stockBatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ItemsTableTableManager
@@ -2336,7 +2559,7 @@ class $$ItemsTableTableManager
           $$ItemsTableUpdateCompanionBuilder,
           (Item, $$ItemsTableReferences),
           Item,
-          PrefetchHooks Function({bool categoryId})
+          PrefetchHooks Function({bool categoryId, bool stockBatchesRefs})
         > {
   $$ItemsTableTableManager(_$AppDatabase db, $ItemsTable table)
     : super(
@@ -2354,13 +2577,7 @@ class $$ItemsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> categoryId = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<int> buyPrice = const Value.absent(),
-                Value<int> sellPrice = const Value.absent(),
-                Value<String> photoUrl = const Value.absent(),
-                Value<bool> isDiscounted = const Value.absent(),
-                Value<int?> discountedPrice = const Value.absent(),
-                Value<DateTime?> stockInDate = const Value.absent(),
-                Value<DateTime?> stockOutDate = const Value.absent(),
+                Value<String> photoPath = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2368,13 +2585,7 @@ class $$ItemsTableTableManager
                 id: id,
                 categoryId: categoryId,
                 name: name,
-                buyPrice: buyPrice,
-                sellPrice: sellPrice,
-                photoUrl: photoUrl,
-                isDiscounted: isDiscounted,
-                discountedPrice: discountedPrice,
-                stockInDate: stockInDate,
-                stockOutDate: stockOutDate,
+                photoPath: photoPath,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -2384,13 +2595,7 @@ class $$ItemsTableTableManager
                 Value<String> id = const Value.absent(),
                 required String categoryId,
                 required String name,
-                required int buyPrice,
-                required int sellPrice,
-                required String photoUrl,
-                Value<bool> isDiscounted = const Value.absent(),
-                Value<int?> discountedPrice = const Value.absent(),
-                Value<DateTime?> stockInDate = const Value.absent(),
-                Value<DateTime?> stockOutDate = const Value.absent(),
+                required String photoPath,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2398,13 +2603,7 @@ class $$ItemsTableTableManager
                 id: id,
                 categoryId: categoryId,
                 name: name,
-                buyPrice: buyPrice,
-                sellPrice: sellPrice,
-                photoUrl: photoUrl,
-                isDiscounted: isDiscounted,
-                discountedPrice: discountedPrice,
-                stockInDate: stockInDate,
-                stockOutDate: stockOutDate,
+                photoPath: photoPath,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -2415,7 +2614,429 @@ class $$ItemsTableTableManager
                     (e.readTable(table), $$ItemsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({categoryId = false}) {
+          prefetchHooksCallback:
+              ({categoryId = false, stockBatchesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (stockBatchesRefs) db.stockBatches,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (categoryId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.categoryId,
+                                    referencedTable: $$ItemsTableReferences
+                                        ._categoryIdTable(db),
+                                    referencedColumn: $$ItemsTableReferences
+                                        ._categoryIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (stockBatchesRefs)
+                        await $_getPrefetchedData<
+                          Item,
+                          $ItemsTable,
+                          StockBatch
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ItemsTableReferences
+                              ._stockBatchesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).stockBatchesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.itemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ItemsTable,
+      Item,
+      $$ItemsTableFilterComposer,
+      $$ItemsTableOrderingComposer,
+      $$ItemsTableAnnotationComposer,
+      $$ItemsTableCreateCompanionBuilder,
+      $$ItemsTableUpdateCompanionBuilder,
+      (Item, $$ItemsTableReferences),
+      Item,
+      PrefetchHooks Function({bool categoryId, bool stockBatchesRefs})
+    >;
+typedef $$StockBatchesTableCreateCompanionBuilder =
+    StockBatchesCompanion Function({
+      Value<String> id,
+      required String itemId,
+      Value<int> version,
+      required int quantity,
+      required int buyPrice,
+      required int sellPrice,
+      Value<DateTime> stockInDate,
+      Value<DateTime?> stockOutDate,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$StockBatchesTableUpdateCompanionBuilder =
+    StockBatchesCompanion Function({
+      Value<String> id,
+      Value<String> itemId,
+      Value<int> version,
+      Value<int> quantity,
+      Value<int> buyPrice,
+      Value<int> sellPrice,
+      Value<DateTime> stockInDate,
+      Value<DateTime?> stockOutDate,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$StockBatchesTableReferences
+    extends BaseReferences<_$AppDatabase, $StockBatchesTable, StockBatch> {
+  $$StockBatchesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ItemsTable _itemIdTable(_$AppDatabase db) =>
+      db.items.createAlias('stock_batches__item_id__items__id');
+
+  $$ItemsTableProcessedTableManager get itemId {
+    final $_column = $_itemColumn<String>('item_id')!;
+
+    final manager = $$ItemsTableTableManager(
+      $_db,
+      $_db.items,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_itemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$StockBatchesTableFilterComposer
+    extends Composer<_$AppDatabase, $StockBatchesTable> {
+  $$StockBatchesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get buyPrice => $composableBuilder(
+    column: $table.buyPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sellPrice => $composableBuilder(
+    column: $table.sellPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get stockInDate => $composableBuilder(
+    column: $table.stockInDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get stockOutDate => $composableBuilder(
+    column: $table.stockOutDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ItemsTableFilterComposer get itemId {
+    final $$ItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.items,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.items,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StockBatchesTableOrderingComposer
+    extends Composer<_$AppDatabase, $StockBatchesTable> {
+  $$StockBatchesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get buyPrice => $composableBuilder(
+    column: $table.buyPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sellPrice => $composableBuilder(
+    column: $table.sellPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get stockInDate => $composableBuilder(
+    column: $table.stockInDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get stockOutDate => $composableBuilder(
+    column: $table.stockOutDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ItemsTableOrderingComposer get itemId {
+    final $$ItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.items,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.items,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StockBatchesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StockBatchesTable> {
+  $$StockBatchesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<int> get buyPrice =>
+      $composableBuilder(column: $table.buyPrice, builder: (column) => column);
+
+  GeneratedColumn<int> get sellPrice =>
+      $composableBuilder(column: $table.sellPrice, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get stockInDate => $composableBuilder(
+    column: $table.stockInDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get stockOutDate => $composableBuilder(
+    column: $table.stockOutDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ItemsTableAnnotationComposer get itemId {
+    final $$ItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.items,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.items,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StockBatchesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StockBatchesTable,
+          StockBatch,
+          $$StockBatchesTableFilterComposer,
+          $$StockBatchesTableOrderingComposer,
+          $$StockBatchesTableAnnotationComposer,
+          $$StockBatchesTableCreateCompanionBuilder,
+          $$StockBatchesTableUpdateCompanionBuilder,
+          (StockBatch, $$StockBatchesTableReferences),
+          StockBatch,
+          PrefetchHooks Function({bool itemId})
+        > {
+  $$StockBatchesTableTableManager(_$AppDatabase db, $StockBatchesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StockBatchesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StockBatchesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StockBatchesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int> quantity = const Value.absent(),
+                Value<int> buyPrice = const Value.absent(),
+                Value<int> sellPrice = const Value.absent(),
+                Value<DateTime> stockInDate = const Value.absent(),
+                Value<DateTime?> stockOutDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StockBatchesCompanion(
+                id: id,
+                itemId: itemId,
+                version: version,
+                quantity: quantity,
+                buyPrice: buyPrice,
+                sellPrice: sellPrice,
+                stockInDate: stockInDate,
+                stockOutDate: stockOutDate,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String itemId,
+                Value<int> version = const Value.absent(),
+                required int quantity,
+                required int buyPrice,
+                required int sellPrice,
+                Value<DateTime> stockInDate = const Value.absent(),
+                Value<DateTime?> stockOutDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StockBatchesCompanion.insert(
+                id: id,
+                itemId: itemId,
+                version: version,
+                quantity: quantity,
+                buyPrice: buyPrice,
+                sellPrice: sellPrice,
+                stockInDate: stockInDate,
+                stockOutDate: stockOutDate,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$StockBatchesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({itemId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -2435,15 +3056,15 @@ class $$ItemsTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (categoryId) {
+                    if (itemId) {
                       state =
                           state.withJoin(
                                 currentTable: table,
-                                currentColumn: table.categoryId,
-                                referencedTable: $$ItemsTableReferences
-                                    ._categoryIdTable(db),
-                                referencedColumn: $$ItemsTableReferences
-                                    ._categoryIdTable(db)
+                                currentColumn: table.itemId,
+                                referencedTable: $$StockBatchesTableReferences
+                                    ._itemIdTable(db),
+                                referencedColumn: $$StockBatchesTableReferences
+                                    ._itemIdTable(db)
                                     .id,
                               )
                               as T;
@@ -2460,19 +3081,19 @@ class $$ItemsTableTableManager
       );
 }
 
-typedef $$ItemsTableProcessedTableManager =
+typedef $$StockBatchesTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $ItemsTable,
-      Item,
-      $$ItemsTableFilterComposer,
-      $$ItemsTableOrderingComposer,
-      $$ItemsTableAnnotationComposer,
-      $$ItemsTableCreateCompanionBuilder,
-      $$ItemsTableUpdateCompanionBuilder,
-      (Item, $$ItemsTableReferences),
-      Item,
-      PrefetchHooks Function({bool categoryId})
+      $StockBatchesTable,
+      StockBatch,
+      $$StockBatchesTableFilterComposer,
+      $$StockBatchesTableOrderingComposer,
+      $$StockBatchesTableAnnotationComposer,
+      $$StockBatchesTableCreateCompanionBuilder,
+      $$StockBatchesTableUpdateCompanionBuilder,
+      (StockBatch, $$StockBatchesTableReferences),
+      StockBatch,
+      PrefetchHooks Function({bool itemId})
     >;
 
 class $AppDatabaseManager {
@@ -2484,4 +3105,6 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$ItemsTableTableManager get items =>
       $$ItemsTableTableManager(_db, _db.items);
+  $$StockBatchesTableTableManager get stockBatches =>
+      $$StockBatchesTableTableManager(_db, _db.stockBatches);
 }
