@@ -43,18 +43,37 @@ class RestockItemsRequested extends ProductEvent {
   RestockItemsRequested({required this.newBatches});
 }
 
+class LoadProductMovementsRequested extends ProductEvent {
+  final String? itemId;
+  LoadProductMovementsRequested({this.itemId});
+}
+
+class GetProductByIdRequested extends ProductEvent {
+  final String id;
+  GetProductByIdRequested({required this.id});
+}
+
 // --- States ---
 abstract class ProductState {}
 
 class ProductInitial extends ProductState {}
 
 class ProductLoaded extends ProductState {
-  final List<ItemWithActiveStock> products; // ◄ List<Item> မှ ပြောင်းလဲထားသည်
+  final List<ItemWithActiveStock> products;
+  final List<ProductMovement> movements;
   final String? error;
-  ProductLoaded({required this.products, this.error});
+  ProductLoaded({
+    required this.products,
+    this.movements = const [],
+    this.error,
+  });
 
   ProductLoaded copyWithError(String? error) {
-    return ProductLoaded(products: products, error: error);
+    return ProductLoaded(
+      products: products,
+      movements: movements,
+      error: error,
+    );
   }
 }
 
@@ -88,7 +107,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       try {
         await _repository.addProduct(event.item, event.image);
       } catch (e) {
-        _emitError(emit, "Error adding product: $e");
+        _emitError(
+          emit,
+          e is ArgumentError ? e.message : "Error adding product: $e",
+        );
       }
     });
 
@@ -96,7 +118,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       try {
         await _repository.updateProduct(event.id, event.item, event.image);
       } catch (e) {
-        _emitError(emit, "Error updating product: $e");
+        _emitError(
+          emit,
+          e is ArgumentError ? e.message : "Error updating product: $e",
+        );
       }
     });
 
@@ -113,7 +138,48 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       try {
         await _repository.restockItems(event.newBatches);
       } catch (e) {
-        _emitError(emit, "Error restocking items: $e");
+        _emitError(
+          emit,
+          e is ArgumentError ? e.message : "Error restocking items: $e",
+        );
+      }
+    });
+
+    on<LoadProductMovementsRequested>((event, emit) async {
+      await emit.forEach<List<ProductMovement>>(
+        _repository.watchMovements(itemId: event.itemId),
+        onData: (movements) => ProductLoaded(
+          products: state is ProductLoaded
+              ? (state as ProductLoaded).products
+              : const [],
+          movements: movements,
+        ),
+        onError: (error, stackTrace) {
+          return ProductLoaded(
+            products: state is ProductLoaded
+                ? (state as ProductLoaded).products
+                : const [],
+            movements: const [],
+            error: "Error loading movements: $error",
+          );
+        },
+      );
+    });
+
+    on<GetProductByIdRequested>((event, emit) async {
+      try {
+        final product = await _repository.getProductById(event.id);
+        emit(
+          ProductLoaded(
+            products: product == null ? const [] : [product],
+            movements: const [],
+          ),
+        );
+      } catch (e) {
+        _emitError(
+          emit,
+          e is ArgumentError ? e.message : "Error loading product: $e",
+        );
       }
     });
   }
