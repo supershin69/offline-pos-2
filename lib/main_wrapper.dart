@@ -22,13 +22,13 @@ class MainWrapper extends StatelessWidget {
       ),
       if (user.role == 'ADMIN')
         NavigationItem(
-          screen: const Center(child: ProductScreen()),
+          screen:  Center(child: ProductScreen()),
           label: 'Items',
           icon: Icons.inventory,
         ),
       if (user.role == 'ADMIN') // 🛡️ ADMIN ဖြစ်မှသာ Users Tab ကို ထည့်ပေးမယ်
         NavigationItem(
-          screen: const Center(child: UserScreen()),
+          screen:  Center(child: UserScreen()),
           label: 'Users',
           icon: Icons.people,
         ),
