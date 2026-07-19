@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:offline_pos/core/database/database.dart';
+import 'package:offline_pos/mock_data.dart'; // adjust import
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,12 +11,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategoryId = '';
+  String _selectedCategory = 'All';
+
+  // ---------- Scroll Controller for category chips ----------
   final ScrollController _scrollController = ScrollController();
   bool _isAtStart = true;
   bool _isAtEnd = false;
 
-  final _db = AppDatabase();
+  // ---------- Mock data (or switch to DB) ----------
+  final List<Product> _allProducts = getMockProducts(); // from mock_data.dart
 
   @override
   void initState() {
@@ -27,8 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController.removeListener(_updateScrollButtons);
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -43,43 +44,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _scrollLeft() {
+    if (_isAtStart) return;
     _scrollController.animateTo(
-      _scrollController.offset - 100,
+      _scrollController.offset - 120,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }
 
   void _scrollRight() {
+    if (_isAtEnd) return;
     _scrollController.animateTo(
-      _scrollController.offset + 100,
+      _scrollController.offset + 120,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }
 
+  // ---------- Getters for categories and filtered products ----------
+  List<String> get _categories {
+    final cats = _allProducts.map((p) => p.category).toSet().toList();
+    cats.insert(0, 'All');
+    return cats;
+  }
+
+  List<Product> get _filteredProducts {
+    final query = _searchController.text.toLowerCase();
+    return _allProducts.where((p) {
+      final matchSearch = p.name.toLowerCase().contains(query);
+      final matchCategory =
+          _selectedCategory == 'All' || p.category == _selectedCategory;
+      return matchSearch && matchCategory;
+    }).toList();
+  }
+
   String _formatPrice(int price) => '$price Ks';
 
-  Widget _buildCategoryChip(String id, String name) {
-    bool isSelected = _selectedCategoryId == id;
+  // ---------- Build category chip ----------
+  Widget _buildCategoryChip(String category, String label) {
+    bool isSelected = _selectedCategory == category;
     return ChoiceChip(
       label: Text(
-        name,
+        label,
         style: TextStyle(
           fontSize: 12,
           color: isSelected ? Colors.white : Colors.black87,
         ),
       ),
       selected: isSelected,
-      onSelected: (_) {
+      onSelected: (selected) {
         setState(() {
-          _selectedCategoryId = isSelected ? '' : id;
+          _selectedCategory = category;
         });
       },
       backgroundColor: Colors.grey.shade200,
-      selectedColor: const Color(0xFF5945CB),
+      selectedColor: Color(0xFF5945CB),
       side: BorderSide(
-        color: isSelected ? const Color(0xFF5945CB) : Colors.grey.shade400,
+        color: isSelected ? Color(0xFF5945CB) : Colors.grey.shade400,
         width: 1.0,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -130,153 +151,92 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          StreamBuilder<List<Category>>(
-            stream: _db.select(_db.categories).watch(),
-            builder: (context, catSnapshot) {
-              if (catSnapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              }
-              final categories = catSnapshot.data ?? [];
-              final allChips = [
-                _buildCategoryChip('', 'All'),
-                const SizedBox(width: 8),
-                ...categories.map(
-                  (cat) => Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: _buildCategoryChip(cat.id, cat.name),
-                  ),
-                ),
-              ];
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: _isAtStart ? null : _scrollLeft,
-                      icon: Icon(
-                        Icons.chevron_left,
-                        color: _isAtStart
-                            ? Colors.grey
-                            : const Color(0xFF5945CB),
-                        size: 28,
-                      ),
-                      padding: const EdgeInsets.all(2),
-                      constraints: const BoxConstraints(
-                        minWidth: 30,
-                        minHeight: 30,
-                      ),
-                      splashRadius: 20,
-                    ),
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: Scrollbar(
-                          thumbVisibility: true,
-                          thickness: 4,
-                          radius: const Radius.circular(10),
-                          child: ListView(
-                            controller: _scrollController,
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 2.0,
-                            ),
-                            children: allChips,
-                          ),
+          // ---------- Category chips with arrow buttons ----------
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          //   child: Row(
+          //     children: [
+          //       // Left arrow button
+          //       IconButton(
+          //         onPressed: _isAtStart ? null : _scrollLeft,
+          //         icon: Icon(
+          //           Icons.chevron_left,
+          //           color: _isAtStart ? Colors.grey : Color(0xFF5945CB),
+          //           size: 28,
+          //         ),
+          //         padding: EdgeInsets.all(1),
+          //         constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+          //         splashRadius: 20,
+          //       ),
+          //       // Scrollable chips
+          //       Expanded(
+          //         child: SizedBox(
+          //           height: 40,
+          //           child: Scrollbar(
+          //             // thumbVisibility: true,
+          //             // thickness: 5,
+          //             radius: const Radius.circular(10),
+          //             child: ListView(
+          //               controller: _scrollController,
+          //               scrollDirection: Axis.horizontal,
+          //               padding: const EdgeInsets.symmetric(horizontal: 0.0),
+          //               children: [
+          //                 _buildCategoryChip('All', 'All'),
+          //                 const SizedBox(width: 4),
+          //                 ..._categories
+          //                     .where((cat) => cat != 'All')
+          //                     .map((cat) => Padding(
+          //                           padding: const EdgeInsets.only(right: 8.0),
+          //                           child: _buildCategoryChip(cat, cat),
+          //                         )),
+          //               ],
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //       // Right arrow button
+          //       IconButton(
+          //         onPressed: _isAtEnd ? null : _scrollRight,
+          //         icon: Icon(
+          //           Icons.chevron_right,
+          //           color: _isAtEnd ? Colors.grey : Color(0xFF5945CB),
+          //           size: 28,
+          //         ),
+          //         padding: EdgeInsets.all(2),
+          //         constraints: const BoxConstraints(minHeight: 30, minWidth: 30),
+          //         splashRadius: 20,
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          const SizedBox(height: 10),
+          // ---------- Product grid ----------
+          Expanded(
+            child: _filteredProducts.isEmpty
+                ? const Center(child: Text('No products match your search'))
+                : GridView.builder(
+                    padding: const EdgeInsets.all(10),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.65,
                         ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: _isAtEnd ? null : _scrollRight,
-                      icon: Icon(
-                        Icons.chevron_right,
-                        color: _isAtEnd ? Colors.grey : const Color(0xFF5945CB),
-                        size: 28,
-                      ),
-                      padding: const EdgeInsets.all(2),
-                      constraints: const BoxConstraints(
-                        minWidth: 30,
-                        minHeight: 30,
-                      ),
-                      splashRadius: 20,
-                    ),
-                  ],
-                ),
-              );
-            },
+                    itemCount: _filteredProducts.length,
+                    itemBuilder: (ctx, index) {
+                      final product = _filteredProducts[index];
+                      return ProductCard(product: product);
+                    },
+                  ),
           ),
-          const SizedBox(height: 12),
-          Expanded(child: _buildProductGrid()),
         ],
       ),
     );
   }
-
-  Widget _buildProductGrid() {
-    return StreamBuilder<List<Category>>(
-      stream: _db.select(_db.categories).watch(),
-      builder: (context, catSnapshot) {
-        if (catSnapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final categories = catSnapshot.data ?? [];
-        final Map<String, String> categoryMap = {
-          for (var cat in categories) cat.id: cat.name,
-        };
-
-        return StreamBuilder<List<Item>>(
-          stream: _db.select(_db.items).watch(),
-          builder: (context, itemSnapshot) {
-            if (itemSnapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (!itemSnapshot.hasData || itemSnapshot.data!.isEmpty) {
-              return const Center(child: Text('No products available.'));
-            }
-
-            final items = itemSnapshot.data!;
-            final query = _searchController.text.toLowerCase();
-
-            final filtered = items.where((item) {
-              final nameMatch = item.name.toLowerCase().contains(query);
-              final categoryMatch =
-                  _selectedCategoryId.isEmpty ||
-                  item.categoryId == _selectedCategoryId;
-              return nameMatch && categoryMatch;
-            }).toList();
-
-            if (filtered.isEmpty) {
-              return const Center(child: Text('No products match your search'));
-            }
-
-            return GridView.builder(
-              padding: const EdgeInsets.all(10),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.61,
-              ),
-              itemCount: filtered.length,
-              itemBuilder: (ctx, index) {
-                final item = filtered[index];
-                final product = Product(
-                  name: item.name,
-                  category: categoryMap[item.categoryId] ?? 'Uncategorized',
-                  price: item.sellPrice,
-                  imageUrl: item.photoUrl,
-                );
-                return ProductCard(product: product);
-              },
-            );
-          },
-        );
-      },
-    );
-  }
 }
 
-// ─── Product model ──────────────────────────────────────────────────
+// ================== Product Model (same as before) ==================
 class Product {
   final String name;
   final String category;
@@ -291,7 +251,7 @@ class Product {
   });
 }
 
-// ─── ProductCard widget ────────────────────────────────────────────
+// ================== ProductCard (unchanged) ==================
 class ProductCard extends StatefulWidget {
   final Product product;
   const ProductCard({super.key, required this.product});
@@ -359,60 +319,67 @@ class _ProductCardState extends State<ProductCard> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  // Sell price (with label)
-                  Text(
-                    'Sell: ${_formatPrice(widget.product.price)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: Color(0xFF5945CB),
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                  const SizedBox(height: 6),
-                  // Add button (icon only)
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Added ${widget.product.name}'),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _formatPrice(widget.product.price),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: Color(0xFF5945CB),
+                          ),
+                          textAlign: TextAlign.left,
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5945CB),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(40, 30),
-                      padding: const EdgeInsets.all(4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ).copyWith(
-                      backgroundColor: WidgetStateProperty.resolveWith(
-                        (states) {
-                          if (states.contains(WidgetState.hovered) ||
-                              states.contains(WidgetState.pressed)) {
-                            return const Color(0xFF5945CB).withOpacity(0.8);
-                          }
-                          return const Color(0xFF5945CB);
+                      ElevatedButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Added ${widget.product.name}'),
+                            ),
+                          );
                         },
+
+                        style:
+                            ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF5945CB),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(40, 26),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ).copyWith(
+                              backgroundColor: WidgetStateProperty.resolveWith((
+                                states,
+                              ) {
+                                if (states.contains(WidgetState.hovered) ||
+                                    states.contains(WidgetState.pressed)) {
+                                  return Color(0xFF5945CB).withOpacity(0.8);
+                                }
+                                return Color(0xFF5945CB);
+                              }),
+                              elevation: WidgetStateProperty.resolveWith((
+                                states,
+                              ) {
+                                if (states.contains(WidgetState.hovered) ||
+                                    states.contains(WidgetState.pressed)) {
+                                  return 8.0;
+                                }
+                                return 2.0;
+                              }),
+                            ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 20,
+                          color: Colors.white,
+                        ),
                       ),
-                      elevation: WidgetStateProperty.resolveWith(
-                        (states) {
-                          if (states.contains(WidgetState.hovered) ||
-                              states.contains(WidgetState.pressed)) {
-                            return 8.0;
-                          }
-                          return 2.0;
-                        },
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      size: 18,
-                      color: Colors.white,
-                    ),
+                    ],
                   ),
                 ],
               ),

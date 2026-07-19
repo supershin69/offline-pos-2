@@ -4,6 +4,8 @@ import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/auth/data/auth_bloc.dart';
 import 'package:offline_pos/features/auth/repositories/auth_service.dart';
 import 'package:offline_pos/features/auth/views/login_screen.dart';
+import 'package:offline_pos/features/categories/data/category_bloc.dart';
+import 'package:offline_pos/features/categories/repositories/category_repository.dart';
 import 'package:offline_pos/features/products/data/product_bloc.dart';
 import 'package:offline_pos/features/products/repositories/product_repository.dart';
 import 'package:offline_pos/features/users/repositories/user_service.dart';
@@ -23,6 +25,9 @@ void main() {
           create: (context) => ProductRepository(db),
         ),
         RepositoryProvider<AuthService>(create: (context) => AuthService(db)),
+        RepositoryProvider<CategoryRepository>(
+          create: (context) => CategoryRepository(db),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -31,6 +36,11 @@ void main() {
             create: (context) =>
                 ProductBloc(context.read<ProductRepository>())
                   ..add(MonitorProductStarted()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                CategoryBloc(context.read<CategoryRepository>())
+                  ..add(MonitorCategoriesStarted()),
           ),
         ],
         child: const MyApp(),
