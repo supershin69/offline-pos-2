@@ -78,11 +78,9 @@ class ItemWithActiveStock {
   ItemWithActiveStock({required this.item, this.activeStock});
 }
 
-@DriftDatabase(
-  tables: [Users, Categories, Items, StockBatches], // ◄ Table အသစ် ထည့်ထားသည်
-)
+@DriftDatabase(tables: [Users, Categories, Items, StockBatches])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
   int get schemaVersion => 5; // ◄ Schema ပြောင်းသွားလို့ ဗားရှင်း တိုးပေးရပါမယ်
