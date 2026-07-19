@@ -27,7 +27,7 @@ class Unauthenticated extends AuthState {}
 
 // Bloc
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc() : super(AuthInitial()) {
+  AuthBloc() : super(Unauthenticated()) {
     on<AppStarted>((event, emit) => emit(Unauthenticated()));
     on<LoggedIn>((event, emit) => emit(Authenticated(event.user)));
     on<LoggedOut>((event, emit) => emit(Unauthenticated()));
