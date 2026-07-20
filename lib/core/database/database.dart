@@ -85,6 +85,9 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 5; // ◄ Schema ပြောင်းသွားလို့ ဗားရှင်း တိုးပေးရပါမယ်
 
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([]);
+  
   Future<User?> getUserByEmail(String email) {
     return (select(
       users,
