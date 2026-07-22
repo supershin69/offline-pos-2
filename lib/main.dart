@@ -17,6 +17,8 @@ final userService = UserService(db);
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
+  
+
   db = AppDatabase();
   runApp(
     MultiRepositoryProvider(

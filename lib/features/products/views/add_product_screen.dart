@@ -4,11 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/categories/views/category_screen.dart';
-import 'package:offline_pos/features/products/data/product_bloc.dart';
 import 'package:offline_pos/features/products/repositories/product_repository.dart';
 
 class AddProductScreen extends StatefulWidget {
-  final ItemWithActiveStock? editProduct; // 👈 new parameter
+  final ItemWithActiveStock? editProduct;
   const AddProductScreen({super.key, this.editProduct});
 
   @override
@@ -31,19 +30,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
   DateTime? _expDate;
   DateTime? _alertDate;
   bool _isSaving = false;
-  bool _isEditing = false; // 👈 track mode
-
-  late final ProductRepository _repository;
-  late final ProductBloc _bloc;
+  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    _repository = ProductRepository(AppDatabase());
-    _bloc = ProductBloc(_repository);
     _loadCategories();
 
-    // ─── Edit mode: pre‑fill fields ────────────────────────────────
+    // ─── Edit mode: pre-fill fields ────────────────────────────────
     if (widget.editProduct != null) {
       _isEditing = true;
       final product = widget.editProduct!;
@@ -54,14 +48,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
         _buyPriceController.text = product.activeStock!.buyPrice.toString();
         _sellPriceController.text = product.activeStock!.sellPrice.toString();
         _stockController.text = product.activeStock!.quantity.toString();
-        _expDate = product.activeStock!.stockInDate; // approximate
+        _expDate = product.activeStock!.stockInDate;
       }
     }
   }
 
   Future<void> _loadCategories() async {
-    final cats = await _repository.db.select(_repository.db.categories).get();
-    setState(() => _categories = cats);
+    final repository = context.read<ProductRepository>();
+    final cats = await repository.db.select(repository.db.categories).get();
+    if (mounted) {
+      setState(() => _categories = cats);
+    }
   }
 
   Future<void> _pickImage() async {
@@ -81,8 +78,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isExp) _expDate = picked;
-        else _alertDate = picked;
+        if (isExp) {
+          _expDate = picked;
+        } else {
+          _alertDate = picked;
+        }
       });
     }
   }
@@ -100,7 +100,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     });
   }
 
-  // ─── Navigate to CategoryScreen ──────────────────────────────────
   Future<void> _navigateToCategoryScreen() async {
     await Navigator.push(
       context,
@@ -136,29 +135,34 @@ class _AddProductScreenState extends State<AddProductScreen> {
         photoPath: _selectedImagePath ?? '',
       );
 
+      final repository = context.read<ProductRepository>();
+
       if (_isEditing) {
         // ─── Update existing product ────────────────────────────────────
-        final File? imageFile = _selectedImagePath != null ? File(_selectedImagePath!) : null;
-        await _repository.updateProduct(
+        final File? imageFile =
+            _selectedImagePath != null ? File(_selectedImagePath!) : null;
+        await repository.updateProduct(
           widget.editProduct!.item.id,
           companion,
           imageFile,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Product updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
         // ─── Add new product ──────────────────────────────────────────
-        await _repository.addProduct(
+        await repository.addProduct(
           companion,
           _selectedImagePath != null ? File(_selectedImagePath!) : null,
         );
 
-        final product = await (_repository.db.select(_repository.db.items)
-            ..where((tbl) => tbl.name.equals(name)))
+        final product = await (repository.db.select(repository.db.items)
+              ..where((tbl) => tbl.name.equals(name)))
             .getSingleOrNull();
 
         if (product != null && stock > 0) {
@@ -168,32 +172,39 @@ class _AddProductScreenState extends State<AddProductScreen> {
             buyPrice: buyPrice,
             sellPrice: sellPrice,
           );
-          await _repository.restockItems([batch]);
+          await repository.restockItems([batch]);
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product added successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Product added successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
 
       _clearAll();
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
-  // ─── Helper: build a label + field pair ──────────────────────────
   Widget _buildField({
     required String label,
     required Widget field,
@@ -246,7 +257,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3EFFF),
       appBar: AppBar(
-        title: const Text('Add Product'), // 👈 unchanged, always "Add Product"
+        title: const Text('Add Product'),
         backgroundColor: const Color(0xFF5945CB),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -505,7 +516,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('Save Item'), // 👈 unchanged
+                            : const Text('Save Item'),
                       ),
                     ),
                   ],

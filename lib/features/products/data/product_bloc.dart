@@ -1,6 +1,6 @@
-// features/products/data/product_bloc.dart
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/products/repositories/product_repository.dart';
 
@@ -37,7 +37,6 @@ class DeleteProductRequested extends ProductEvent {
   DeleteProductRequested({required this.id});
 }
 
-// 🚚 Food Truck အသုတ်လိုက် ဝင်လာသည့် ပွဲအတွက် Event အသစ်
 class RestockItemsRequested extends ProductEvent {
   final List<StockBatchesCompanion> newBatches;
   RestockItemsRequested({required this.newBatches});
@@ -62,6 +61,7 @@ class ProductLoaded extends ProductState {
   final List<ItemWithActiveStock> products;
   final List<ProductMovement> movements;
   final String? error;
+
   ProductLoaded({
     required this.products,
     this.movements = const [],
@@ -82,49 +82,50 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductRepository _repository;
 
   ProductBloc(this._repository) : super(ProductInitial()) {
-    // 🔄 Monitor လုပ်သည့်နေရာတွင် Type အသစ်သို့ ပြောင်းလဲခြင်း
-    on<MonitorProductStarted>((event, emit) async {
-      await emit.forEach<List<ItemWithActiveStock>>(
-        _repository.watchProducts(
-          search: event.search,
-          categoryId: event.categoryId,
-          sortBy: event.sortBy,
-        ),
-        onData: (itemList) => ProductLoaded(products: itemList),
-        onError: (error, stackTrace) {
-          final currentProducts = state is ProductLoaded
-              ? (state as ProductLoaded).products
-              : <ItemWithActiveStock>[];
-          return ProductLoaded(
-            products: currentProducts,
-            error: "Error loading products: $error",
-          );
-        },
-      );
-    });
 
+    // 🔄 Monitor Product List (Stream continuously)
+    on<MonitorProductStarted>(
+      (event, emit) async {
+        await emit.forEach<List<ItemWithActiveStock>>(
+          _repository.watchProducts(
+            search: event.search,
+            categoryId: event.categoryId,
+            sortBy: event.sortBy,
+          ),
+          onData: (itemList) => ProductLoaded(products: itemList),
+          onError: (error, stackTrace) {
+            final currentProducts = state is ProductLoaded
+                ? (state as ProductLoaded).products
+                : <ItemWithActiveStock>[];
+            return ProductLoaded(
+              products: currentProducts,
+              error: "Error loading products: $error",
+            );
+          },
+        );
+      },
+      transformer: restartable(), // 👈 Event အသစ်ရောက်တိုင်း Stream ကို Restart လုပ်ပေးသည်
+    );
+
+    // ➕ Add Product
     on<AddProductRequested>((event, emit) async {
       try {
         await _repository.addProduct(event.item, event.image);
       } catch (e) {
-        _emitError(
-          emit,
-          e is ArgumentError ? e.message : "Error adding product: $e",
-        );
+        _emitError(emit, e is ArgumentError ? e.message : "Error adding product: $e");
       }
     });
 
+    // ✏️ Update Product
     on<UpdateProductRequested>((event, emit) async {
       try {
         await _repository.updateProduct(event.id, event.item, event.image);
       } catch (e) {
-        _emitError(
-          emit,
-          e is ArgumentError ? e.message : "Error updating product: $e",
-        );
+        _emitError(emit, e is ArgumentError ? e.message : "Error updating product: $e");
       }
     });
 
+    // ❌ Delete Product
     on<DeleteProductRequested>((event, emit) async {
       try {
         await _repository.deleteProduct(event.id);
@@ -133,39 +134,37 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       }
     });
 
-    // 🚚 Restock Logic Handler
+    // 🚚 Restock Batch
     on<RestockItemsRequested>((event, emit) async {
       try {
         await _repository.restockItems(event.newBatches);
       } catch (e) {
-        _emitError(
-          emit,
-          e is ArgumentError ? e.message : "Error restocking items: $e",
-        );
+        _emitError(emit, e is ArgumentError ? e.message : "Error restocking items: $e");
       }
     });
 
-    on<LoadProductMovementsRequested>((event, emit) async {
-      await emit.forEach<List<ProductMovement>>(
-        _repository.watchMovements(itemId: event.itemId),
-        onData: (movements) => ProductLoaded(
-          products: state is ProductLoaded
-              ? (state as ProductLoaded).products
-              : const [],
-          movements: movements,
-        ),
-        onError: (error, stackTrace) {
-          return ProductLoaded(
-            products: state is ProductLoaded
-                ? (state as ProductLoaded).products
-                : const [],
-            movements: const [],
-            error: "Error loading movements: $error",
-          );
-        },
-      );
-    });
+    // 📊 Load Movements
+    on<LoadProductMovementsRequested>(
+      (event, emit) async {
+        await emit.forEach<List<ProductMovement>>(
+          _repository.watchMovements(itemId: event.itemId),
+          onData: (movements) => ProductLoaded(
+            products: state is ProductLoaded ? (state as ProductLoaded).products : const [],
+            movements: movements,
+          ),
+          onError: (error, stackTrace) {
+            return ProductLoaded(
+              products: state is ProductLoaded ? (state as ProductLoaded).products : const [],
+              movements: const [],
+              error: "Error loading movements: $error",
+            );
+          },
+        );
+      },
+      transformer: restartable(),
+    );
 
+    // 🔍 Get Product By Id
     on<GetProductByIdRequested>((event, emit) async {
       try {
         final product = await _repository.getProductById(event.id);
@@ -176,10 +175,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           ),
         );
       } catch (e) {
-        _emitError(
-          emit,
-          e is ArgumentError ? e.message : "Error loading product: $e",
-        );
+        _emitError(emit, e is ArgumentError ? e.message : "Error loading product: $e");
       }
     });
   }

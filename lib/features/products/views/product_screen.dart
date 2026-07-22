@@ -1,11 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/categories/views/category_screen.dart';
 import 'package:offline_pos/features/products/data/product_bloc.dart';
-import 'package:offline_pos/features/products/repositories/product_repository.dart';
 import 'package:offline_pos/features/products/views/add_product_screen.dart';
-import 'dart:io';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -17,26 +16,15 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
-  late ProductBloc _bloc;
-  late final ProductRepository _repository;
-
-  @override
-  void initState() {
-    super.initState();
-    _repository = ProductRepository(AppDatabase());
-    _bloc = ProductBloc(_repository);
-    _bloc.add(MonitorProductStarted());
-  }
 
   @override
   void dispose() {
-    _bloc.close();
     _searchController.dispose();
     super.dispose();
   }
 
   // ─── Navigate to AddProductScreen for new product ──────────────
-  void _navigateToAddProduct() {
+  void _navigateToAddProduct(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AddProductScreen()),
@@ -44,7 +32,10 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   // ─── Navigate to AddProductScreen for editing ───────────────────
-  void _navigateToEditProduct(ItemWithActiveStock product) {
+  void _navigateToEditProduct(
+    BuildContext context,
+    ItemWithActiveStock product,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => AddProductScreen(editProduct: product)),
@@ -52,17 +43,15 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   void _openCategoryList() async {
-    // Wait for the CategoryScreen to return a selected category ID
     final selectedCategoryId = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const CategoryScreen(), // Your existing screen
+        builder: (context) => const CategoryScreen(),
       ),
     );
 
-    // If a category was chosen, filter the items
-    if (selectedCategoryId != null) {
-      _bloc.add(
+    if (selectedCategoryId != null && mounted) {
+      context.read<ProductBloc>().add(
         MonitorProductStarted(
           search: _searchController.text,
           categoryId: selectedCategoryId,
@@ -91,8 +80,8 @@ class _ProductScreenState extends State<ProductScreen> {
         ],
       ),
     );
-    if (confirm == true) {
-      _bloc.add(DeleteProductRequested(id: id));
+    if (confirm == true && mounted) {
+      context.read<ProductBloc>().add(DeleteProductRequested(id: id));
     }
   }
 
@@ -108,17 +97,16 @@ class _ProductScreenState extends State<ProductScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: _navigateToAddProduct ,
+            onPressed: () => _navigateToAddProduct(context),
           ),
           IconButton(
             icon: const Icon(Icons.category),
-            onPressed: _openCategoryList ,
+            onPressed: _openCategoryList,
             tooltip: 'Manage Categories',
           ),
         ],
       ),
       body: BlocListener<ProductBloc, ProductState>(
-        bloc: _bloc,
         listener: (context, state) {
           if (state is ProductLoaded && state.error != null) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -148,13 +136,14 @@ class _ProductScreenState extends State<ProductScreen> {
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
                 ),
                 onChanged: (value) {
-                  _bloc.add(MonitorProductStarted(search: value));
+                  context.read<ProductBloc>().add(
+                    MonitorProductStarted(search: value),
+                  );
                 },
               ),
             ),
             // ─── Item count ────────────────────────────────────────────
             BlocBuilder<ProductBloc, ProductState>(
-              bloc: _bloc,
               builder: (context, state) {
                 int count = 0;
                 if (state is ProductLoaded) {
@@ -190,10 +179,9 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // ─── Product list (table layout with image) ──────────────
+            // ─── Product list ──────────────────────────────────────────
             Expanded(
               child: BlocBuilder<ProductBloc, ProductState>(
-                bloc: _bloc,
                 builder: (context, state) {
                   if (state is ProductInitial) {
                     return const Center(child: CircularProgressIndicator());
@@ -214,7 +202,9 @@ class _ProductScreenState extends State<ProductScreen> {
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () {
-                                _bloc.add(MonitorProductStarted());
+                                context.read<ProductBloc>().add(
+                                      MonitorProductStarted(),
+                                    );
                               },
                               child: const Text('Retry'),
                             ),
@@ -264,12 +254,10 @@ class _ProductScreenState extends State<ProductScreen> {
                               horizontal: 12,
                               vertical: 4,
                             ),
-                            // ─── Image thumbnail (left) ──────────────
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: _buildProductImage(item.photoPath, 50, 50),
                             ),
-                            // ─── Name, price, stock (right) ──────────
                             title: Text(
                               item.name,
                               style: const TextStyle(
@@ -291,7 +279,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                 const SizedBox(width: 12),
                                 Text(
                                   stock != null
-                                      ? 'Stock${stock.quantity}'
+                                      ? 'Stock ${stock.quantity}'
                                       : 'Out of stock',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -302,7 +290,6 @@ class _ProductScreenState extends State<ProductScreen> {
                                 ),
                               ],
                             ),
-                            // ─── Edit & Delete buttons (right) ──────
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -312,8 +299,10 @@ class _ProductScreenState extends State<ProductScreen> {
                                     size: 20,
                                     color: Colors.blue,
                                   ),
-                                  onPressed: () =>
-                                      _navigateToEditProduct(itemWithStock),
+                                  onPressed: () => _navigateToEditProduct(
+                                    ctx,
+                                    itemWithStock,
+                                  ),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
                                     minWidth: 40,
@@ -378,7 +367,6 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  // ─── Helper: build a thumbnail image ─────────────────────────────
   Widget _buildProductImage(String path, double width, double height) {
     if (path.isEmpty) {
       return Container(

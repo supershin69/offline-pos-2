@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/categories/data/category_bloc.dart';
-import 'package:offline_pos/features/categories/repositories/category_repository.dart';
+// Note: CategoryRepository အသစ်ခေါ်စရာမလိုတော့လို့ import ဖြုတ်ထားပါတယ်။
 
 class CategoryScreen extends StatefulWidget {
   final Function(String)? onCategorySelected;
@@ -14,18 +14,17 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   final TextEditingController _searchController = TextEditingController();
-  late final CategoryBloc _categoryBloc;
 
   @override
   void initState() {
     super.initState();
-    _categoryBloc = CategoryBloc(CategoryRepository(AppDatabase()));
-    _categoryBloc.add(MonitorCategoriesStarted());
+    // main.dart မှ ထောက်ပံ့ပေးထားသော Global Bloc ကိုသာ တိုက်ရိုက်သုံးပါမည်
+    context.read<CategoryBloc>().add(MonitorCategoriesStarted());
   }
 
   @override
   void dispose() {
-    _categoryBloc.close();
+    // _categoryBloc.close(); ကို ဖြုတ်လိုက်ပါပြီ။ (Global Bloc ဖြစ်လို့ ပိတ်စရာမလိုပါ)
     _searchController.dispose();
     super.dispose();
   }
@@ -54,7 +53,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
             onPressed: () {
               final name = controller.text.trim();
               if (name.isNotEmpty) {
-                _categoryBloc.add(
+                // context.read ဖြင့်သာ Bloc ကို ခေါ်သုံးပါ
+                context.read<CategoryBloc>().add(
                   AddCategoryRequested(
                     category: CategoriesCompanion.insert(name: name),
                   ),
@@ -96,7 +96,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             onPressed: () {
               final newName = controller.text.trim();
               if (newName.isNotEmpty) {
-                _categoryBloc.add(
+                context.read<CategoryBloc>().add(
                   UpdateCategoryRequested(
                     id: category.id,
                     category: CategoriesCompanion.insert(name: newName),
@@ -135,8 +135,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
         ],
       ),
     );
-    if (confirm == true) {
-      _categoryBloc.add(DeleteCategoryRequested(id: category.id));
+    if (confirm == true && mounted) {
+      context.read<CategoryBloc>().add(DeleteCategoryRequested(id: category.id));
     }
   }
 
@@ -151,7 +151,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         elevation: 0,
       ),
       body: BlocListener<CategoryBloc, CategoryState>(
-        bloc: _categoryBloc,
+        // bloc: _categoryBloc, ကို ဖြုတ်လိုက်ပါပြီ (Tree ထဲကနေ Auto ရှာပေးပါလိမ့်မယ်)
         listener: (context, state) {
           if (state is CategoryLoaded && state.error != null) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -163,7 +163,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
           }
         },
         child: BlocBuilder<CategoryBloc, CategoryState>(
-          bloc: _categoryBloc,
           builder: (context, state) {
             if (state is CategoryInitial) {
               return const Center(child: CircularProgressIndicator());

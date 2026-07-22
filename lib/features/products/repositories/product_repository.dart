@@ -42,6 +42,7 @@ class ProductRepository {
   final AppDatabase db;
   ProductRepository(this.db);
 
+  // 🛑 Name Validation Logic (Duplicate Name စစ်ဆေးခြင်း)
   static void validateUniqueProductName(
     String? name,
     List<String> existingNames, {
@@ -65,20 +66,21 @@ class ProductRepository {
     }
   }
 
+  // 🛑 Price Validation Logic
   static void validateNumericPrice(Object? price, {required String fieldName}) {
     if (price == null) {
       throw ArgumentError('$fieldName must be a number');
     }
 
-    final parsedValue = price is int
-        ? price
-        : int.tryParse(price.toString().trim());
+    final parsedValue =
+        price is int ? price : int.tryParse(price.toString().trim());
 
     if (parsedValue == null) {
       throw ArgumentError('$fieldName must be a number');
     }
   }
 
+  // 🔢 Quantity တွက်ချက်သည့် Helper Functions (ပြန်လည်ပေါင်းထည့်ထားပါသည်)
   static int calculateCurrentQuantity(List<StockBatch> batches) {
     return batches
         .where((batch) => batch.stockOutDate == null)
@@ -92,49 +94,7 @@ class ProductRepository {
     return calculateCurrentQuantity(batches);
   }
 
-  Stream<List<ProductMovement>> watchMovements({String? itemId}) {
-    final query = db.select(db.stockBatches);
-
-    if (itemId != null && itemId.isNotEmpty) {
-      query.where((tbl) => tbl.itemId.equals(itemId));
-    }
-
-    query.orderBy([
-      (tbl) =>
-          OrderingTerm(expression: tbl.stockInDate, mode: OrderingMode.desc),
-    ]);
-
-    return query.watch().map((rows) {
-      return rows.map((row) => ProductMovement.fromStockBatch(row)).toList();
-    });
-  }
-
-  Future<ItemWithActiveStock?> getProductById(String id) async {
-    final item = await (db.select(
-      db.items,
-    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
-
-    if (item == null) {
-      return null;
-    }
-
-    final activeBatch =
-        await (db.select(db.stockBatches)
-              ..where(
-                (tbl) => tbl.itemId.equals(id) & tbl.stockOutDate.isNull(),
-              )
-              ..orderBy([
-                (tbl) => OrderingTerm(
-                  expression: tbl.version,
-                  mode: OrderingMode.desc,
-                ),
-              ]))
-            .getSingleOrNull();
-
-    return ItemWithActiveStock(item: item, activeStock: activeBatch);
-  }
-
-  // 🔄 Active ဖြစ်နေတဲ့ စျေးနှုန်း/Stock စာရင်းတွေပါတွဲပြီး Live Stream ကြည့်ရန်
+  // 🔄 Active ဖြစ်နေတဲ့ Product List ကို Live Stream ကြည့်ရန်
   Stream<List<ItemWithActiveStock>> watchProducts({
     String? search,
     String? categoryId,
@@ -147,7 +107,7 @@ class ProductRepository {
     );
   }
 
-  // 📝 Product Master အချက်အလက်သစ် (နာမည်၊ ကဏ္ဍ၊ ဓာတ်ပုံ) ကိုသာ အရင်ဆောက်ရန်
+  // 📝 Product အသစ်ထည့်ရန်
   Future<void> addProduct(ItemsCompanion item, File? pickedImage) async {
     if (item.name.present) {
       final existingNames = (await db.select(db.items).get())
@@ -163,7 +123,7 @@ class ProductRepository {
     await db.into(db.items).insert(item.copyWith(photoPath: Value(localPath)));
   }
 
-  // ✏️ Product Master အချက်အလက်ကို ပြင်ဆင်ရန်
+  // ✏️ Product ပြင်ဆင်ရန်
   Future<int> updateProduct(
     String id,
     ItemsCompanion item,
@@ -203,7 +163,7 @@ class ProductRepository {
     )..where((tbl) => tbl.id.equals(id))).write(updatedCompanion);
   }
 
-  // ❌ Product ကို ဖျက်ရန် (StockBatches ပါ Cascade onDelete ဖြင့် တစ်ခါတည်း ပျက်သွားမည်)
+  // ❌ Product ဖျက်ရန်
   Future<int> deleteProduct(String id) async {
     final product = await (db.select(
       db.items,
@@ -214,7 +174,7 @@ class ProductRepository {
     return await (db.delete(db.items)..where((tbl) => tbl.id.equals(id))).go();
   }
 
-  // 🚚 Food Truck ရောက်လာချိန်တွင် အသုတ်လိုက် ပစ္စည်းစာရင်းအသစ် သွင်းရန် (Transaction)
+  // 🚚 Restock Batch သွင်းရန်
   Future<void> restockItems(List<StockBatchesCompanion> newBatches) async {
     for (final batch in newBatches) {
       if (batch.buyPrice.present) {
@@ -224,7 +184,32 @@ class ProductRepository {
         validateNumericPrice(batch.sellPrice.value, fieldName: 'sell price');
       }
     }
-
     await db.restockItemsInBatch(newBatches);
+  }
+
+  // 📊 Movement History Streams
+  Stream<List<ProductMovement>> watchMovements({String? itemId}) {
+    final query = db.select(db.stockBatches);
+    if (itemId != null && itemId.isNotEmpty) {
+      query.where((tbl) => tbl.itemId.equals(itemId));
+    }
+    query.orderBy([
+      (tbl) => OrderingTerm(expression: tbl.stockInDate, mode: OrderingMode.desc),
+    ]);
+    return query.watch().map((rows) {
+      return rows.map((row) => ProductMovement.fromStockBatch(row)).toList();
+    });
+  }
+
+  Future<ItemWithActiveStock?> getProductById(String id) async {
+    final item = await (db.select(db.items)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+    if (item == null) return null;
+
+    final activeBatch = await (db.select(db.stockBatches)
+          ..where((tbl) => tbl.itemId.equals(id) & tbl.stockOutDate.isNull())
+          ..orderBy([(tbl) => OrderingTerm(expression: tbl.version, mode: OrderingMode.desc)]))
+        .getSingleOrNull();
+
+    return ItemWithActiveStock(item: item, activeStock: activeBatch);
   }
 }
