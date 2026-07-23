@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,7 +9,7 @@ import 'package:offline_pos/features/products/data/product_bloc.dart';
 import 'package:offline_pos/features/products/repositories/product_repository.dart';
 
 class AddProductScreen extends StatefulWidget {
-  final ItemWithActiveStock? editProduct; // 👈 new parameter
+  final ItemWithActiveStock? editProduct;
   const AddProductScreen({super.key, this.editProduct});
 
   @override
@@ -31,16 +32,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
   DateTime? _expDate;
   DateTime? _alertDate;
   bool _isSaving = false;
-  bool _isEditing = false; // 👈 track mode
+  bool _isEditing = false;
 
   late final ProductRepository _repository;
-  late final ProductBloc _bloc;
 
   @override
   void initState() {
     super.initState();
-    _repository = ProductRepository(AppDatabase());
-    _bloc = ProductBloc(_repository);
+    _repository = context.read<ProductRepository>();
     _loadCategories();
 
     // ─── Edit mode: pre‑fill fields ────────────────────────────────
@@ -54,14 +53,42 @@ class _AddProductScreenState extends State<AddProductScreen> {
         _buyPriceController.text = product.activeStock!.buyPrice.toString();
         _sellPriceController.text = product.activeStock!.sellPrice.toString();
         _stockController.text = product.activeStock!.quantity.toString();
-        _expDate = product.activeStock!.stockInDate; // approximate
+        _expDate = product.activeStock!.stockInDate;
       }
     }
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _buyPriceController.dispose();
+    _sellPriceController.dispose();
+    _stockController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadCategories() async {
-    final cats = await _repository.db.select(_repository.db.categories).get();
-    setState(() => _categories = cats);
+    try {
+      final cats = await _repository.db.select(_repository.db.categories).get();
+      if (mounted) {
+        setState(() => _categories = cats);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('Failed to load categories', isError: true);
+      }
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _pickImage() async {
@@ -75,14 +102,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future<void> _selectDate(bool isExp) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _expDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
     if (picked != null) {
       setState(() {
-        if (isExp) _expDate = picked;
-        else _alertDate = picked;
+        if (isExp) {
+          _expDate = picked;
+        } else {
+          _alertDate = picked;
+        }
       });
     }
   }
@@ -100,7 +130,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     });
   }
 
-  // ─── Navigate to CategoryScreen ──────────────────────────────────
   Future<void> _navigateToCategoryScreen() async {
     await Navigator.push(
       context,
@@ -109,91 +138,102 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _loadCategories();
   }
 
+  // ─── Save / Update Logic ──────────────────────────────────────────
   Future<void> _saveProduct() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedCategoryId == null) {
+      _showSnackBar('Please select a category', isError: true);
+      return;
+    }
 
     final name = _nameController.text.trim();
     final buyPrice = int.tryParse(_buyPriceController.text.trim()) ?? 0;
     final sellPrice = int.tryParse(_sellPriceController.text.trim()) ?? 0;
     final stock = int.tryParse(_stockController.text.trim()) ?? 0;
 
-    if (name.isEmpty || _selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() => _isSaving = true);
 
     try {
-      final companion = ItemsCompanion.insert(
-        categoryId: _selectedCategoryId!,
-        name: name,
-        photoPath: _selectedImagePath ?? '',
-      );
-
-      if (_isEditing) {
-        // ─── Update existing product ────────────────────────────────────
-        final File? imageFile = _selectedImagePath != null ? File(_selectedImagePath!) : null;
-        await _repository.updateProduct(
-          widget.editProduct!.item.id,
-          companion,
-          imageFile,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        // ─── Add new product ──────────────────────────────────────────
-        await _repository.addProduct(
-          companion,
-          _selectedImagePath != null ? File(_selectedImagePath!) : null,
-        );
-
-        final product = await (_repository.db.select(_repository.db.items)
-            ..where((tbl) => tbl.name.equals(name)))
-            .getSingleOrNull();
-
-        if (product != null && stock > 0) {
-          final batch = StockBatchesCompanion.insert(
-            itemId: product.id,
-            quantity: stock,
-            buyPrice: buyPrice,
-            sellPrice: sellPrice,
-          );
-          await _repository.restockItems([batch]);
+      // 💡 Image File အမှန်တကယ် ရှိ၊ မရှိ စစ်ဆေးခြင်း
+      File? imageFile;
+      if (_selectedImagePath != null && _selectedImagePath!.isNotEmpty) {
+        final checkFile = File(_selectedImagePath!);
+        if (checkFile.existsSync()) {
+          imageFile = checkFile;
+        } else {
+          debugPrint('Warning: Image path does not exist on disk: $_selectedImagePath');
         }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product added successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
       }
 
-      _clearAll();
-      Navigator.pop(context);
+      if (_isEditing) {
+        // ─── 1. Update Existing Product ──────────────────────────────
+        final itemCompanion = ItemsCompanion(
+          id: drift.Value(widget.editProduct!.item.id),
+          categoryId: drift.Value(_selectedCategoryId!),
+          name: drift.Value(name),
+          photoPath: drift.Value(_selectedImagePath ?? ''),
+          updatedAt: drift.Value(DateTime.now()),
+        );
+
+        await _repository.updateProduct(
+          widget.editProduct!.item.id,
+          itemCompanion,
+          imageFile, // Safe ဖြစ်သွားသည့် imageFile ပို့ပေးမည်
+        );
+
+        // Update Stock Batch
+        final batch = StockBatchesCompanion.insert(
+          itemId: widget.editProduct!.item.id,
+          quantity: stock,
+          buyPrice: buyPrice,
+          sellPrice: sellPrice,
+          stockInDate: drift.Value(_expDate ?? DateTime.now()),
+        );
+        await _repository.restockItems([batch]);
+
+        if (mounted) {
+          _showSnackBar('Product updated successfully!');
+        }
+      } else {
+        // ─── 2. Add New Product Safe Pattern ─────────────────────────
+        final companion = ItemsCompanion.insert(
+          categoryId: _selectedCategoryId!,
+          name: name,
+          photoPath: _selectedImagePath ?? '',
+        );
+
+        final insertedItem = await _repository.db.into(_repository.db.items).insertReturning(companion);
+
+        final batch = StockBatchesCompanion.insert(
+          itemId: insertedItem.id,
+          quantity: stock,
+          buyPrice: buyPrice,
+          sellPrice: sellPrice,
+          stockInDate: drift.Value(_expDate ?? DateTime.now()),
+        );
+        await _repository.restockItems([batch]);
+
+        if (mounted) {
+          _showSnackBar('Product added successfully!');
+        }
+      }
+
+      if (mounted) {
+        context.read<ProductBloc>().add(MonitorProductStarted());
+        Navigator.pop(context, true);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        _showSnackBar('Error: $e', isError: true);
+      }
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
-  // ─── Helper: build a label + field pair ──────────────────────────
   Widget _buildField({
     required String label,
     required Widget field,
@@ -239,14 +279,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide.none,
       ),
       isDense: true,
     );
 
+    // 💡 Category list ထဲမှာ selected id ရှိ မရှိ စစ်ဆေးထားခြင်း
+    final bool isCategoryValid = _categories.any((cat) => cat.id == _selectedCategoryId);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF3EFFF),
       appBar: AppBar(
-        title: const Text('Add Product'), // 👈 unchanged, always "Add Product"
+        title: Text(_isEditing ? 'Edit Product' : 'Add Product'),
         backgroundColor: const Color(0xFF5945CB),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -269,24 +313,28 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   child: Container(
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: const Color(0xFF5945CB).withOpacity(0.3),
                       ),
-                      image: _selectedImagePath != null
+                      image: _selectedImagePath != null &&
+                              _selectedImagePath!.isNotEmpty &&
+                              File(_selectedImagePath!).existsSync()
                           ? DecorationImage(
                               image: FileImage(File(_selectedImagePath!)),
                               fit: BoxFit.cover,
                             )
                           : null,
                     ),
-                    child: _selectedImagePath == null
+                    child: _selectedImagePath == null ||
+                            _selectedImagePath!.isEmpty ||
+                            !File(_selectedImagePath!).existsSync()
                         ? const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo, size: 40, color: Color(0xFF5945CB)),
-                              SizedBox(height: 4),
+                              Icon(Icons.add_a_photo, size: 36, color: Color(0xFF5945CB)),
+                              SizedBox(height: 6),
                               Text('Upload Image', style: TextStyle(fontSize: 13, color: Colors.grey)),
                             ],
                           )
@@ -309,7 +357,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // ─── Buy Price + Sell Price (row) ───────────────────
+                // ─── Buy Price + Sell Price ───────────────────
                 Row(
                   children: [
                     Expanded(
@@ -319,7 +367,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         field: TextFormField(
                           controller: _buyPriceController,
                           decoration: inputDecoration.copyWith(
-                            hintText: '0.00',
+                            hintText: '0',
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
@@ -334,7 +382,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         field: TextFormField(
                           controller: _sellPriceController,
                           decoration: inputDecoration.copyWith(
-                            hintText: '0.00',
+                            hintText: '0',
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
@@ -345,7 +393,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // ─── EXP Date + Alert Date (row) ────────────────────
+                // ─── EXP Date + Alert Date ────────────────────
                 Row(
                   children: [
                     Expanded(
@@ -357,7 +405,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade400),
                               borderRadius: BorderRadius.circular(12),
                               color: Colors.white,
                             ),
@@ -369,11 +416,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                       ? '${_expDate!.day}/${_expDate!.month}/${_expDate!.year}'
                                       : 'DD/MM/YYYY',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     color: _expDate != null ? Colors.black : Colors.grey,
                                   ),
                                 ),
-                                const Icon(Icons.calendar_today, size: 18),
+                                const Icon(Icons.calendar_today, size: 16, color: Color(0xFF5945CB)),
                               ],
                             ),
                           ),
@@ -390,7 +437,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade400),
                               borderRadius: BorderRadius.circular(12),
                               color: Colors.white,
                             ),
@@ -402,11 +448,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                       ? '${_alertDate!.day}/${_alertDate!.month}/${_alertDate!.year}'
                                       : 'DD/MM/YYYY',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     color: _alertDate != null ? Colors.black : Colors.grey,
                                   ),
                                 ),
-                                const Icon(Icons.calendar_today, size: 18),
+                                const Icon(Icons.calendar_today, size: 16, color: Color(0xFF5945CB)),
                               ],
                             ),
                           ),
@@ -428,7 +474,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           decoration: inputDecoration.copyWith(
                             hintText: 'Select Category',
                           ),
-                          value: _selectedCategoryId,
+                          value: isCategoryValid ? _selectedCategoryId : null,
                           items: _categories.map((cat) {
                             return DropdownMenuItem(
                               value: cat.id,
@@ -452,7 +498,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                 // ─── Stock ───────────────────────────────────────────
                 _buildField(
-                  label: 'Stock',
+                  label: 'Stock Quantity',
                   isRequired: true,
                   field: TextFormField(
                     controller: _stockController,
@@ -465,7 +511,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // ─── Buttons ──────────────────────────────────────────
+                // ─── Action Buttons ───────────────────────────────────
                 Row(
                   children: [
                     Expanded(
@@ -505,7 +551,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('Save Item'), // 👈 unchanged
+                            : Text(_isEditing ? 'Update Item' : 'Save Item'),
                       ),
                     ),
                   ],

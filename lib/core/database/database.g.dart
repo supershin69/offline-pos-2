@@ -1730,6 +1730,430 @@ class StockBatchesCompanion extends UpdateCompanion<StockBatch> {
   }
 }
 
+class $TransactionsTable extends Transactions
+    with TableInfo<$TransactionsTable, Transaction> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransactionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _transactionNoMeta = const VerificationMeta(
+    'transactionNo',
+  );
+  @override
+  late final GeneratedColumn<String> transactionNo = GeneratedColumn<String>(
+    'transaction_no',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _paymentMethodMeta = const VerificationMeta(
+    'paymentMethod',
+  );
+  @override
+  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
+    'payment_method',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemsSummaryMeta = const VerificationMeta(
+    'itemsSummary',
+  );
+  @override
+  late final GeneratedColumn<String> itemsSummary = GeneratedColumn<String>(
+    'items_summary',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalAmountMeta = const VerificationMeta(
+    'totalAmount',
+  );
+  @override
+  late final GeneratedColumn<int> totalAmount = GeneratedColumn<int>(
+    'total_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    transactionNo,
+    paymentMethod,
+    itemsSummary,
+    totalAmount,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transactions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Transaction> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('transaction_no')) {
+      context.handle(
+        _transactionNoMeta,
+        transactionNo.isAcceptableOrUnknown(
+          data['transaction_no']!,
+          _transactionNoMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transactionNoMeta);
+    }
+    if (data.containsKey('payment_method')) {
+      context.handle(
+        _paymentMethodMeta,
+        paymentMethod.isAcceptableOrUnknown(
+          data['payment_method']!,
+          _paymentMethodMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_paymentMethodMeta);
+    }
+    if (data.containsKey('items_summary')) {
+      context.handle(
+        _itemsSummaryMeta,
+        itemsSummary.isAcceptableOrUnknown(
+          data['items_summary']!,
+          _itemsSummaryMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_itemsSummaryMeta);
+    }
+    if (data.containsKey('total_amount')) {
+      context.handle(
+        _totalAmountMeta,
+        totalAmount.isAcceptableOrUnknown(
+          data['total_amount']!,
+          _totalAmountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalAmountMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Transaction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Transaction(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      transactionNo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transaction_no'],
+      )!,
+      paymentMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_method'],
+      )!,
+      itemsSummary: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}items_summary'],
+      )!,
+      totalAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_amount'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TransactionsTable createAlias(String alias) {
+    return $TransactionsTable(attachedDatabase, alias);
+  }
+}
+
+class Transaction extends DataClass implements Insertable<Transaction> {
+  final int id;
+  final String transactionNo;
+  final String paymentMethod;
+  final String itemsSummary;
+  final int totalAmount;
+  final DateTime createdAt;
+  const Transaction({
+    required this.id,
+    required this.transactionNo,
+    required this.paymentMethod,
+    required this.itemsSummary,
+    required this.totalAmount,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['transaction_no'] = Variable<String>(transactionNo);
+    map['payment_method'] = Variable<String>(paymentMethod);
+    map['items_summary'] = Variable<String>(itemsSummary);
+    map['total_amount'] = Variable<int>(totalAmount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TransactionsCompanion toCompanion(bool nullToAbsent) {
+    return TransactionsCompanion(
+      id: Value(id),
+      transactionNo: Value(transactionNo),
+      paymentMethod: Value(paymentMethod),
+      itemsSummary: Value(itemsSummary),
+      totalAmount: Value(totalAmount),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Transaction.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Transaction(
+      id: serializer.fromJson<int>(json['id']),
+      transactionNo: serializer.fromJson<String>(json['transactionNo']),
+      paymentMethod: serializer.fromJson<String>(json['paymentMethod']),
+      itemsSummary: serializer.fromJson<String>(json['itemsSummary']),
+      totalAmount: serializer.fromJson<int>(json['totalAmount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'transactionNo': serializer.toJson<String>(transactionNo),
+      'paymentMethod': serializer.toJson<String>(paymentMethod),
+      'itemsSummary': serializer.toJson<String>(itemsSummary),
+      'totalAmount': serializer.toJson<int>(totalAmount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Transaction copyWith({
+    int? id,
+    String? transactionNo,
+    String? paymentMethod,
+    String? itemsSummary,
+    int? totalAmount,
+    DateTime? createdAt,
+  }) => Transaction(
+    id: id ?? this.id,
+    transactionNo: transactionNo ?? this.transactionNo,
+    paymentMethod: paymentMethod ?? this.paymentMethod,
+    itemsSummary: itemsSummary ?? this.itemsSummary,
+    totalAmount: totalAmount ?? this.totalAmount,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Transaction copyWithCompanion(TransactionsCompanion data) {
+    return Transaction(
+      id: data.id.present ? data.id.value : this.id,
+      transactionNo: data.transactionNo.present
+          ? data.transactionNo.value
+          : this.transactionNo,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
+      itemsSummary: data.itemsSummary.present
+          ? data.itemsSummary.value
+          : this.itemsSummary,
+      totalAmount: data.totalAmount.present
+          ? data.totalAmount.value
+          : this.totalAmount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Transaction(')
+          ..write('id: $id, ')
+          ..write('transactionNo: $transactionNo, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('itemsSummary: $itemsSummary, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    transactionNo,
+    paymentMethod,
+    itemsSummary,
+    totalAmount,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Transaction &&
+          other.id == this.id &&
+          other.transactionNo == this.transactionNo &&
+          other.paymentMethod == this.paymentMethod &&
+          other.itemsSummary == this.itemsSummary &&
+          other.totalAmount == this.totalAmount &&
+          other.createdAt == this.createdAt);
+}
+
+class TransactionsCompanion extends UpdateCompanion<Transaction> {
+  final Value<int> id;
+  final Value<String> transactionNo;
+  final Value<String> paymentMethod;
+  final Value<String> itemsSummary;
+  final Value<int> totalAmount;
+  final Value<DateTime> createdAt;
+  const TransactionsCompanion({
+    this.id = const Value.absent(),
+    this.transactionNo = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.itemsSummary = const Value.absent(),
+    this.totalAmount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  TransactionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String transactionNo,
+    required String paymentMethod,
+    required String itemsSummary,
+    required int totalAmount,
+    this.createdAt = const Value.absent(),
+  }) : transactionNo = Value(transactionNo),
+       paymentMethod = Value(paymentMethod),
+       itemsSummary = Value(itemsSummary),
+       totalAmount = Value(totalAmount);
+  static Insertable<Transaction> custom({
+    Expression<int>? id,
+    Expression<String>? transactionNo,
+    Expression<String>? paymentMethod,
+    Expression<String>? itemsSummary,
+    Expression<int>? totalAmount,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transactionNo != null) 'transaction_no': transactionNo,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (itemsSummary != null) 'items_summary': itemsSummary,
+      if (totalAmount != null) 'total_amount': totalAmount,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  TransactionsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? transactionNo,
+    Value<String>? paymentMethod,
+    Value<String>? itemsSummary,
+    Value<int>? totalAmount,
+    Value<DateTime>? createdAt,
+  }) {
+    return TransactionsCompanion(
+      id: id ?? this.id,
+      transactionNo: transactionNo ?? this.transactionNo,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      itemsSummary: itemsSummary ?? this.itemsSummary,
+      totalAmount: totalAmount ?? this.totalAmount,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (transactionNo.present) {
+      map['transaction_no'] = Variable<String>(transactionNo.value);
+    }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(paymentMethod.value);
+    }
+    if (itemsSummary.present) {
+      map['items_summary'] = Variable<String>(itemsSummary.value);
+    }
+    if (totalAmount.present) {
+      map['total_amount'] = Variable<int>(totalAmount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('transactionNo: $transactionNo, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('itemsSummary: $itemsSummary, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1737,6 +2161,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $ItemsTable items = $ItemsTable(this);
   late final $StockBatchesTable stockBatches = $StockBatchesTable(this);
+  late final $TransactionsTable transactions = $TransactionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1746,6 +2171,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     categories,
     items,
     stockBatches,
+    transactions,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3095,6 +3521,227 @@ typedef $$StockBatchesTableProcessedTableManager =
       StockBatch,
       PrefetchHooks Function({bool itemId})
     >;
+typedef $$TransactionsTableCreateCompanionBuilder =
+    TransactionsCompanion Function({
+      Value<int> id,
+      required String transactionNo,
+      required String paymentMethod,
+      required String itemsSummary,
+      required int totalAmount,
+      Value<DateTime> createdAt,
+    });
+typedef $$TransactionsTableUpdateCompanionBuilder =
+    TransactionsCompanion Function({
+      Value<int> id,
+      Value<String> transactionNo,
+      Value<String> paymentMethod,
+      Value<String> itemsSummary,
+      Value<int> totalAmount,
+      Value<DateTime> createdAt,
+    });
+
+class $$TransactionsTableFilterComposer
+    extends Composer<_$AppDatabase, $TransactionsTable> {
+  $$TransactionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transactionNo => $composableBuilder(
+    column: $table.transactionNo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemsSummary => $composableBuilder(
+    column: $table.itemsSummary,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TransactionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransactionsTable> {
+  $$TransactionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transactionNo => $composableBuilder(
+    column: $table.transactionNo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemsSummary => $composableBuilder(
+    column: $table.itemsSummary,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TransactionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransactionsTable> {
+  $$TransactionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get transactionNo => $composableBuilder(
+    column: $table.transactionNo,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get itemsSummary => $composableBuilder(
+    column: $table.itemsSummary,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$TransactionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TransactionsTable,
+          Transaction,
+          $$TransactionsTableFilterComposer,
+          $$TransactionsTableOrderingComposer,
+          $$TransactionsTableAnnotationComposer,
+          $$TransactionsTableCreateCompanionBuilder,
+          $$TransactionsTableUpdateCompanionBuilder,
+          (
+            Transaction,
+            BaseReferences<_$AppDatabase, $TransactionsTable, Transaction>,
+          ),
+          Transaction,
+          PrefetchHooks Function()
+        > {
+  $$TransactionsTableTableManager(_$AppDatabase db, $TransactionsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TransactionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TransactionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TransactionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> transactionNo = const Value.absent(),
+                Value<String> paymentMethod = const Value.absent(),
+                Value<String> itemsSummary = const Value.absent(),
+                Value<int> totalAmount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TransactionsCompanion(
+                id: id,
+                transactionNo: transactionNo,
+                paymentMethod: paymentMethod,
+                itemsSummary: itemsSummary,
+                totalAmount: totalAmount,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String transactionNo,
+                required String paymentMethod,
+                required String itemsSummary,
+                required int totalAmount,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TransactionsCompanion.insert(
+                id: id,
+                transactionNo: transactionNo,
+                paymentMethod: paymentMethod,
+                itemsSummary: itemsSummary,
+                totalAmount: totalAmount,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TransactionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TransactionsTable,
+      Transaction,
+      $$TransactionsTableFilterComposer,
+      $$TransactionsTableOrderingComposer,
+      $$TransactionsTableAnnotationComposer,
+      $$TransactionsTableCreateCompanionBuilder,
+      $$TransactionsTableUpdateCompanionBuilder,
+      (
+        Transaction,
+        BaseReferences<_$AppDatabase, $TransactionsTable, Transaction>,
+      ),
+      Transaction,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3107,4 +3754,6 @@ class $AppDatabaseManager {
       $$ItemsTableTableManager(_db, _db.items);
   $$StockBatchesTableTableManager get stockBatches =>
       $$StockBatchesTableTableManager(_db, _db.stockBatches);
+  $$TransactionsTableTableManager get transactions =>
+      $$TransactionsTableTableManager(_db, _db.transactions);
 }

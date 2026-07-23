@@ -58,10 +58,14 @@ abstract class ProductState {}
 
 class ProductInitial extends ProductState {}
 
+// 🟢 UI မှ ရှာနေသော ProductLoading Class ကို ထည့်သွင်းပေးထားပါသည်
+class ProductLoading extends ProductState {}
+
 class ProductLoaded extends ProductState {
   final List<ItemWithActiveStock> products;
   final List<ProductMovement> movements;
   final String? error;
+
   ProductLoaded({
     required this.products,
     this.movements = const [],
@@ -77,6 +81,12 @@ class ProductLoaded extends ProductState {
   }
 }
 
+// 🟢 UI မှ ရှာနေသော ProductError Class ကို ထည့်သွင်းပေးထားပါသည်
+class ProductError extends ProductState {
+  final String message;
+  ProductError(this.message);
+}
+
 // --- BLoC Logic ---
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final ProductRepository _repository;
@@ -84,6 +94,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   ProductBloc(this._repository) : super(ProductInitial()) {
     // 🔄 Monitor လုပ်သည့်နေရာတွင် Type အသစ်သို့ ပြောင်းလဲခြင်း
     on<MonitorProductStarted>((event, emit) async {
+      emit(ProductLoading()); // Loading state စတင်ပြသခြင်း
       await emit.forEach<List<ItemWithActiveStock>>(
         _repository.watchProducts(
           search: event.search,
@@ -92,13 +103,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         ),
         onData: (itemList) => ProductLoaded(products: itemList),
         onError: (error, stackTrace) {
-          final currentProducts = state is ProductLoaded
-              ? (state as ProductLoaded).products
-              : <ItemWithActiveStock>[];
-          return ProductLoaded(
-            products: currentProducts,
-            error: "Error loading products: $error",
-          );
+          return ProductError("Error loading products: $error");
         },
       );
     });
@@ -155,13 +160,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           movements: movements,
         ),
         onError: (error, stackTrace) {
-          return ProductLoaded(
-            products: state is ProductLoaded
-                ? (state as ProductLoaded).products
-                : const [],
-            movements: const [],
-            error: "Error loading movements: $error",
-          );
+          return ProductError("Error loading movements: $error");
         },
       );
     });
@@ -188,7 +187,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     if (state is ProductLoaded) {
       emit((state as ProductLoaded).copyWithError(errorMessage));
     } else {
-      emit(ProductLoaded(products: const [], error: errorMessage));
+      emit(ProductError(errorMessage));
     }
   }
 }

@@ -34,7 +34,7 @@ class Categories extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-// 📦 1. Product Master Table (ဈေးနှုန်းနှင့် ရက်စွဲများ မပါတော့ပါ)
+// 📦 1. Product Master Table
 class Items extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get categoryId =>
@@ -48,7 +48,7 @@ class Items extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-// 🔄 2. Stock Batches Table (ဗားရှင်းနှင့် စျေးနှုန်း အတက်အကျများကို သိမ်းရန်)
+// 🔄 2. Stock Batches Table
 @DataClassName('StockBatch')
 class StockBatches extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
@@ -70,6 +70,16 @@ class StockBatches extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+// 💳 3. Transactions Table (အသစ်ဖြည့်စွက်ထားပါသည်)
+class Transactions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get transactionNo => text()();
+  TextColumn get paymentMethod => text()(); // KBZ pay, Wave pay, Cash pay
+  TextColumn get itemsSummary => text()();   // ဝယ်ယူခဲ့သော ပစ္စည်းအမည်များ
+  IntColumn get totalAmount => integer()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // UI သို့မဟုတ် Business Logic ထဲမှာ တွဲသုံးရလွယ်အောင် Data Class တစ်ခု သတ်မှတ်ခြင်း
 class ItemWithActiveStock {
   final Item item;
@@ -78,12 +88,33 @@ class ItemWithActiveStock {
   ItemWithActiveStock({required this.item, this.activeStock});
 }
 
-@DriftDatabase(tables: [Users, Categories, Items, StockBatches])
+// 💡 Tables ထဲတွင် Transactions ကို ထည့်သွင်းထားပါသည်
+@DriftDatabase(tables: [Users, Categories, Items, StockBatches, Transactions])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
+  // 🟢 1. Private Constructor
+  AppDatabase._internal([QueryExecutor? e]) : super(e ?? _openConnection());
+
+  // 🟢 2. Single Global Instance
+  static final AppDatabase instance = AppDatabase._internal();
+
+  // 🟢 3. Factory Constructor
+  factory AppDatabase([QueryExecutor? e]) => instance;
 
   @override
-  int get schemaVersion => 5; // ◄ Schema ပြောင်းသွားလို့ ဗားရှင်း တိုးပေးရပါမယ်
+  int get schemaVersion => 6; // Table အသစ်ပါလာသဖြင့် schemaVersion ကို 6 သို့ တိုးထားပါသည်
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (Migrator m) async {
+          await m.createAll();
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 6) {
+            // Version 6 သို့ တိုးသည့်အခါ Transactions table ကို auto တည်ဆောက်ပေးမည်
+            await m.createTable(transactions);
+          }
+        },
+      );
 
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([]);
@@ -94,7 +125,7 @@ class AppDatabase extends _$AppDatabase {
     )..where((tbl) => tbl.email.equals(email))).getSingleOrNull();
   }
 
-  // ⚡ 3. Seamless Batch Restock Transaction (အသုတ်လိုက် စာရင်းသွင်းခြင်း Logic)
+  // ⚡ 3. Seamless Batch Restock Transaction
   Future<void> restockItemsInBatch(
     List<StockBatchesCompanion> newBatches,
   ) async {
@@ -104,7 +135,6 @@ class AppDatabase extends _$AppDatabase {
       for (var batch in newBatches) {
         final itemId = batch.itemId.value;
 
-        // ကာယကံရှင် Item ရဲ့ လက်ရှိ Active ဖြစ်နေတဲ့ (မကုန်သေးတဲ့/ဗားရှင်းအဟောင်း) batch ကို ရှာရပါမယ်
         final latestBatch =
             await (select(stockBatches)
                   ..where(
@@ -124,13 +154,11 @@ class AppDatabase extends _$AppDatabase {
         if (latestBatch != null) {
           nextVersion = latestBatch.version + 1;
 
-          // စည်းကမ်းချက်အတိုင်း ဗားရှင်းအဟောင်းရဲ့ stockOutDate ကို ယနေ့ရက်စွဲနဲ့ ပိတ်လိုက်ပါမယ်
           await (update(stockBatches)
                 ..where((tbl) => tbl.id.equals(latestBatch.id)))
               .write(StockBatchesCompanion(stockOutDate: Value(today)));
         }
 
-        // ဗားရှင်းအသစ်၊ စျေးနှုန်းအသစ်နဲ့ Batch အသစ်ကို Insert လုပ်ပါမယ်
         await into(stockBatches).insert(
           batch.copyWith(
             version: Value(nextVersion),
@@ -147,7 +175,6 @@ class AppDatabase extends _$AppDatabase {
     String? categoryId,
     ItemSortType sortBy = ItemSortType.nameAsc,
   }) {
-    // Items နဲ့ လက်ရှိ Active ဖြစ်နေတဲ့ StockBatch ကို Join ဆွဲပါမယ်
     final query = select(items).join([
       leftOuterJoin(
         stockBatches,
@@ -164,7 +191,6 @@ class AppDatabase extends _$AppDatabase {
       query.where(items.categoryId.equals(categoryId));
     }
 
-    // Sorting အတွက် ညှိပေးခြင်း (ဈေးနှုန်းနဲ့ ရက်စွဲတွေက StockBatches ထဲ ရောက်သွားလို့ ဖြစ်ပါတယ်)
     query.orderBy([
       if (sortBy == ItemSortType.nameAsc)
         OrderingTerm(expression: items.name, mode: OrderingMode.asc),
@@ -200,6 +226,23 @@ class AppDatabase extends _$AppDatabase {
         );
       }).toList();
     });
+  }
+
+  // 💳 5. Real-time Transactions Stream (Transactions Screen အတွက်)
+  Stream<List<Transaction>> watchAllTransactions() {
+    return (select(transactions)
+          ..orderBy([
+            (tbl) => OrderingTerm(
+                  expression: tbl.createdAt,
+                  mode: OrderingMode.desc,
+                ),
+          ]))
+        .watch();
+  }
+
+  // 🗑️ Transactions အကုန်ဖျက်ရန်
+  Future<void> clearAllTransactions() {
+    return delete(transactions).go();
   }
 }
 

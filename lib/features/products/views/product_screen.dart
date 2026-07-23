@@ -1,11 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/categories/views/category_screen.dart';
 import 'package:offline_pos/features/products/data/product_bloc.dart';
-import 'package:offline_pos/features/products/repositories/product_repository.dart';
 import 'package:offline_pos/features/products/views/add_product_screen.dart';
-import 'dart:io';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -17,57 +16,66 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
-  late ProductBloc _bloc;
-  late final ProductRepository _repository;
+  String? _selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
-    _repository = ProductRepository(AppDatabase());
-    _bloc = ProductBloc(_repository);
-    _bloc.add(MonitorProductStarted());
+    _loadProducts();
   }
 
   @override
   void dispose() {
-    _bloc.close();
     _searchController.dispose();
     super.dispose();
   }
 
+  void _loadProducts() {
+    // main.dart ရှိ Global ProductBloc ဆီသို့ Event ပေးပို့ခြင်း
+    context.read<ProductBloc>().add(
+          MonitorProductStarted(
+            search: _searchController.text.trim(),
+            categoryId: _selectedCategoryId,
+          ),
+        );
+  }
+
   // ─── Navigate to AddProductScreen for new product ──────────────
-  void _navigateToAddProduct() {
-    Navigator.push(
+  Future<void> _navigateToAddProduct() async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AddProductScreen()),
     );
+    if (result == true && mounted) {
+      _loadProducts();
+    }
   }
 
   // ─── Navigate to AddProductScreen for editing ───────────────────
-  void _navigateToEditProduct(ItemWithActiveStock product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => AddProductScreen(editProduct: product)),
-    );
-  }
-
-  void _openCategoryList() async {
-    // Wait for the CategoryScreen to return a selected category ID
-    final selectedCategoryId = await Navigator.push(
+  Future<void> _navigateToEditProduct(ItemWithActiveStock product) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const CategoryScreen(), // Your existing screen
+        builder: (_) => AddProductScreen(editProduct: product),
+      ),
+    );
+    if (result == true && mounted) {
+      _loadProducts();
+    }
+  }
+
+  // ─── Open Category Screen and Filter ────────────────────────────
+  void _openCategoryList() async {
+    final selectedCatId = await Navigator.push<String?>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CategoryScreen(),
       ),
     );
 
-    // If a category was chosen, filter the items
-    if (selectedCategoryId != null) {
-      _bloc.add(
-        MonitorProductStarted(
-          search: _searchController.text,
-          categoryId: selectedCategoryId,
-        ),
-      );
+    if (selectedCatId != null && mounted) {
+      setState(() => _selectedCategoryId = selectedCatId);
+      _loadProducts();
     }
   }
 
@@ -76,6 +84,7 @@ class _ProductScreenState extends State<ProductScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete Product'),
         content: Text('Are you sure you want to delete "$name"?'),
         actions: [
@@ -85,14 +94,18 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
-    if (confirm == true) {
-      _bloc.add(DeleteProductRequested(id: id));
+
+    if (confirm == true && mounted) {
+      context.read<ProductBloc>().add(DeleteProductRequested(id: id));
     }
   }
 
@@ -108,17 +121,17 @@ class _ProductScreenState extends State<ProductScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: _navigateToAddProduct ,
+            onPressed: _navigateToAddProduct,
+            tooltip: 'Add Product',
           ),
           IconButton(
             icon: const Icon(Icons.category),
-            onPressed: _openCategoryList ,
+            onPressed: _openCategoryList,
             tooltip: 'Manage Categories',
           ),
         ],
       ),
       body: BlocListener<ProductBloc, ProductState>(
-        bloc: _bloc,
         listener: (context, state) {
           if (state is ProductLoaded && state.error != null) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +151,16 @@ class _ProductScreenState extends State<ProductScreen> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search Item',
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search, color: Color(0xFF5945CB)),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            _searchController.clear();
+                            _loadProducts();
+                          },
+                        )
+                      : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
@@ -147,39 +169,55 @@ class _ProductScreenState extends State<ProductScreen> {
                   fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
                 ),
-                onChanged: (value) {
-                  _bloc.add(MonitorProductStarted(search: value));
-                },
+                onChanged: (value) => _loadProducts(),
               ),
             ),
+
             // ─── Item count ────────────────────────────────────────────
             BlocBuilder<ProductBloc, ProductState>(
-              bloc: _bloc,
               builder: (context, state) {
                 int count = 0;
                 if (state is ProductLoaded) {
                   count = state.products.length;
                 }
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         '$count Items',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                           color: Colors.grey,
                         ),
                       ),
+                      if (_selectedCategoryId != null)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => _selectedCategoryId = null);
+                            _loadProducts();
+                          },
+                          child: const Text(
+                            'Clear Category Filter',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF5945CB),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 );
               },
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
+
             // ─── Filter chips ──────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -190,14 +228,15 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // ─── Product list (table layout with image) ──────────────
+
+            // ─── Product list ──────────────────────────────────────────
             Expanded(
               child: BlocBuilder<ProductBloc, ProductState>(
-                bloc: _bloc,
                 builder: (context, state) {
                   if (state is ProductInitial) {
                     return const Center(child: CircularProgressIndicator());
                   }
+
                   if (state is ProductLoaded) {
                     if (state.error != null) {
                       return Center(
@@ -205,7 +244,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(
-                              Icons.error,
+                              Icons.error_outline,
                               size: 48,
                               color: Colors.red,
                             ),
@@ -213,9 +252,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             Text(state.error!),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: () {
-                                _bloc.add(MonitorProductStarted());
-                              },
+                              onPressed: _loadProducts,
                               child: const Text('Retry'),
                             ),
                           ],
@@ -223,16 +260,40 @@ class _ProductScreenState extends State<ProductScreen> {
                       );
                     }
 
-                    final products = state.products;
+                    // Filter list on client side based on Filter Chip
+                    var products = state.products;
+                    if (_selectedFilter == 'Low Stock') {
+                      products = products.where((p) {
+                        final qty = p.activeStock?.quantity ?? 0;
+                        return qty <= 5;
+                      }).toList();
+                    } else if (_selectedFilter == 'Near Exp') {
+                      final now = DateTime.now();
+                      products = products.where((p) {
+                        final exp = p.activeStock?.stockInDate;
+                        if (exp == null) return false;
+                        final daysDifference = exp.difference(now).inDays;
+                        return daysDifference <= 30 && daysDifference >= 0;
+                      }).toList();
+                    }
+
                     if (products.isEmpty) {
                       return const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.inventory, size: 64, color: Colors.grey),
+                            Icon(Icons.inventory_2_outlined,
+                                size: 64, color: Colors.grey),
                             SizedBox(height: 8),
-                            Text('No products found'),
-                            SizedBox(height: 8),
+                            Text(
+                              'No products found',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            SizedBox(height: 4),
                             Text(
                               'Tap + to add items',
                               style: TextStyle(color: Colors.grey),
@@ -245,7 +306,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12.0,
-                        vertical: 8.0,
+                        vertical: 4.0,
                       ),
                       itemCount: products.length,
                       itemBuilder: (ctx, index) {
@@ -264,12 +325,12 @@ class _ProductScreenState extends State<ProductScreen> {
                               horizontal: 12,
                               vertical: 4,
                             ),
-                            // ─── Image thumbnail (left) ──────────────
+                            // ─── Image thumbnail ──────────────
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: _buildProductImage(item.photoPath, 50, 50),
                             ),
-                            // ─── Name, price, stock (right) ──────────
+                            // ─── Name, price, stock ──────────────────
                             title: Text(
                               item.name,
                               style: const TextStyle(
@@ -285,24 +346,25 @@ class _ProductScreenState extends State<ProductScreen> {
                                       : 'No price',
                                   style: const TextStyle(
                                     fontSize: 13,
+                                    fontWeight: FontWeight.w600,
                                     color: Color(0xFF5945CB),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
                                   stock != null
-                                      ? 'Stock${stock.quantity}'
+                                      ? 'Stock: ${stock.quantity}'
                                       : 'Out of stock',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: stock != null
-                                        ? Colors.grey
+                                    color: (stock?.quantity ?? 0) > 5
+                                        ? Colors.grey.shade700
                                         : Colors.red,
                                   ),
                                 ),
                               ],
                             ),
-                            // ─── Edit & Delete buttons (right) ──────
+                            // ─── Edit & Delete buttons ──────
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -316,11 +378,10 @@ class _ProductScreenState extends State<ProductScreen> {
                                       _navigateToEditProduct(itemWithStock),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
-                                    minWidth: 40,
-                                    minHeight: 40,
+                                    minWidth: 36,
+                                    minHeight: 36,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
                                 IconButton(
                                   icon: const Icon(
                                     Icons.delete_outline,
@@ -331,8 +392,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                       _deleteProduct(item.id, item.name),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
-                                    minWidth: 40,
-                                    minHeight: 40,
+                                    minWidth: 36,
+                                    minHeight: 36,
                                   ),
                                 ),
                               ],
@@ -342,6 +403,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       },
                     );
                   }
+
                   return const Center(child: Text('Unknown state'));
                 },
               ),
@@ -349,16 +411,30 @@ class _ProductScreenState extends State<ProductScreen> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToAddProduct,
+        backgroundColor: const Color(0xFF5945CB),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
+  // ─── Helper: build filter chip widget ────────────────────────────
   Widget _buildFilterChip(String label) {
     final isSelected = _selectedFilter == label;
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2.0),
         child: ChoiceChip(
-          label: Text(label, style: const TextStyle(fontSize: 12)),
+          label: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
           selected: isSelected,
           onSelected: (selected) {
             setState(() {
@@ -367,12 +443,10 @@ class _ProductScreenState extends State<ProductScreen> {
           },
           selectedColor: const Color(0xFF5945CB),
           backgroundColor: Colors.grey.shade200,
-          labelStyle: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+          showCheckmark: false,
         ),
       ),
     );
@@ -385,7 +459,7 @@ class _ProductScreenState extends State<ProductScreen> {
         width: width,
         height: height,
         color: Colors.grey[200],
-        child: const Icon(Icons.image, color: Colors.grey, size: 30),
+        child: const Icon(Icons.image, color: Colors.grey, size: 28),
       );
     }
     if (path.startsWith('http')) {
