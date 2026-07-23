@@ -19,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _selectedCategoryId = 'All';
 
-  // 💡 Cart Model သီးသန့် မသုံးဘဲ Flutter ရဲ့ List<Map> ဖြင့် သိမ်းဆည်းခြင်း
   final ValueNotifier<int> _cartCount = ValueNotifier<int>(0);
   final List<Map<String, dynamic>> _cartItems = [];
 
