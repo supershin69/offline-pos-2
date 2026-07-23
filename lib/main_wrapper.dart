@@ -4,9 +4,9 @@ import 'package:offline_pos/core/database/database.dart';
 import 'package:offline_pos/features/home/views/home_screen.dart';
 import 'package:offline_pos/features/products/views/product_screen.dart';
 import 'package:offline_pos/features/profile/views/profile_screen.dart';
-import 'package:offline_pos/features/transactions/transaction_screen.dart';
 import 'package:offline_pos/features/users/views/user_screen.dart';
 import 'package:offline_pos/navigation_bloc.dart';
+import 'package:offline_pos/features/transactions/transaction_screen.dart';
 
 class MainWrapper extends StatelessWidget {
   final User user;
@@ -22,18 +22,18 @@ class MainWrapper extends StatelessWidget {
       ),
       if (user.role == 'ADMIN')
         NavigationItem(
-          screen: const Center(child: ProductScreen()),
+          screen:  Center(child: ProductScreen()),
           label: 'Items',
           icon: Icons.inventory,
         ),
       if (user.role == 'ADMIN') // 🛡️ ADMIN ဖြစ်မှသာ Users Tab ကို ထည့်ပေးမယ်
         NavigationItem(
-          screen: const Center(child: UserScreen()),
+          screen:  Center(child: UserScreen()),
           label: 'Users',
           icon: Icons.people,
         ),
       NavigationItem(
-        screen: const Center(child: TransactionScreen()),
+        screen: const Center(child: TransactionsScreen()),
         label: 'Sales',
         icon: Icons.receipt_long,
       ),
